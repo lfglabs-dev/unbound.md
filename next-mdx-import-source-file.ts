@@ -1,1 +1,1 @@
-export * from "nextra/mdx";
+export { useMDXComponents } from "./mdx-components";
