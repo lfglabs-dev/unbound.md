@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In-memory storage for negotiations (in production, use a database)
-const negotiations = new Map<string, any>();
+import { getServiceRequest, createNegotiation, getNegotiations } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,40 +20,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get or create negotiation thread
-    let negotiation = negotiations.get(request_id) || {
-      request_id,
-      created_at: new Date().toISOString(),
-      status: 'active',
-      history: [],
-    };
+    // Verify request exists
+    const serviceRequest = await getServiceRequest(request_id);
+    if (!serviceRequest) {
+      return NextResponse.json(
+        { error: { code: 'not_found', message: 'Request not found' } },
+        { status: 404 }
+      );
+    }
 
-    // Add negotiation event
-    const event = {
-      timestamp: new Date().toISOString(),
+    // Create negotiation event
+    const negotiation = await createNegotiation({
+      request_id,
       action,
       from: agent_id || 'agent',
       offer: offer || null,
       message: message || '',
-    };
+    });
 
-    negotiation.history.push(event);
+    // Get all negotiations for this request
+    const history = await getNegotiations(request_id);
 
-    // Update status based on action
+    // Determine status
+    let negotiationStatus = 'active';
     if (action === 'accept') {
-      negotiation.status = 'accepted';
-      negotiation.final_offer = offer || negotiation.history[negotiation.history.length - 2]?.offer;
+      negotiationStatus = 'accepted';
     } else if (action === 'reject') {
-      negotiation.status = 'rejected';
+      negotiationStatus = 'rejected';
     }
-
-    negotiations.set(request_id, negotiation);
 
     // Log for human review
     console.log('=== NEGOTIATION EVENT ===');
     console.log(`Request: ${request_id}`);
     console.log(`Action: ${action}`);
-    console.log(`From: ${event.from}`);
+    console.log(`From: ${agent_id || 'agent'}`);
     if (offer) console.log(`Offer: ${JSON.stringify(offer, null, 2)}`);
     if (message) console.log(`Message: ${message}`);
     console.log('========================');
@@ -63,17 +61,23 @@ export async function POST(request: NextRequest) {
     // Prepare response
     const response: any = {
       request_id,
-      negotiation_status: negotiation.status,
-      history: negotiation.history,
+      negotiation_status: negotiationStatus,
+      history: history.map(n => ({
+        timestamp: n.created_at,
+        action: n.action,
+        from: n.from,
+        offer: n.offer,
+        message: n.message,
+      })),
     };
 
     if (action === 'counter_offer') {
       response.message = 'Counter-offer received. Human will review and respond within 2 hours.';
-      response.next_steps = 'Wait for human response or check GET /api/negotiate/:id';
+      response.next_steps = 'Wait for human response or check GET /api/negotiate?request_id=XXX';
     } else if (action === 'accept') {
       response.message = 'Offer accepted! Proceed to payment.';
       response.payment = {
-        amount: negotiation.final_offer.amount_usdc || negotiation.final_offer.total,
+        amount: offer?.amount_usdc || serviceRequest.estimated_quote?.total || '0',
         currency: 'USDC',
         network: 'base',
         address: process.env.USDC_PAYMENT_ADDRESS || '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
@@ -107,35 +111,42 @@ export async function GET(request: NextRequest) {
     const request_id = searchParams.get('request_id');
 
     if (!request_id) {
-      // Return all negotiations summary
-      const allNegotiations = Array.from(negotiations.entries()).map(([id, neg]) => ({
-        request_id: id,
-        status: neg.status,
-        events: neg.history.length,
-        created_at: neg.created_at,
-      }));
-
       return NextResponse.json({
-        negotiations: allNegotiations,
-        count: allNegotiations.length,
+        message: 'unbound.md Negotiation API',
+        usage: 'GET /api/negotiate?request_id=XXX to view negotiation history',
       });
     }
 
-    // Return specific negotiation
-    const negotiation = negotiations.get(request_id);
+    // Get negotiations
+    const history = await getNegotiations(request_id);
 
-    if (!negotiation) {
-      return NextResponse.json(
-        { error: { code: 'not_found', message: 'Negotiation not found' } },
-        { status: 404 }
-      );
+    if (history.length === 0) {
+      return NextResponse.json({
+        request_id,
+        status: 'no_negotiations',
+        history: [],
+      });
+    }
+
+    // Determine status from last negotiation
+    const lastNegotiation = history[history.length - 1];
+    let status = 'active';
+    if (lastNegotiation.action === 'accept') {
+      status = 'accepted';
+    } else if (lastNegotiation.action === 'reject') {
+      status = 'rejected';
     }
 
     return NextResponse.json({
       request_id,
-      status: negotiation.status,
-      history: negotiation.history,
-      created_at: negotiation.created_at,
+      status,
+      history: history.map(n => ({
+        timestamp: n.created_at,
+        action: n.action,
+        from: n.from,
+        offer: n.offer,
+        message: n.message,
+      })),
     });
 
   } catch (error) {

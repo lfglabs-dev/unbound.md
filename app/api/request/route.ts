@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServiceRequest, getServiceRequest } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,18 +26,26 @@ export async function POST(request: NextRequest) {
     // Generate unique request ID
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Prepare email notification
-    const emailContent = formatEmailNotification(requestId, service, serviceParams, contact);
-
-    // Send email to ai@thomas.md
-    // Note: In production, this would use a proper email service (SendGrid, Resend, etc.)
-    // For now, we'll log it and return success
-    console.log('=== NEW SERVICE REQUEST ===');
-    console.log(emailContent);
-    console.log('===========================');
-
     // Calculate estimated quote based on service type
     const quote = calculateQuote(service, serviceParams);
+
+    // Store in database
+    const dbRequest = await createServiceRequest({
+      id: requestId,
+      service: service,
+      service_type: serviceParams.type || null,
+      params: serviceParams,
+      contact: contact,
+      estimated_quote: quote,
+      status: 'pending'
+    });
+
+    // Log for monitoring (in production, use proper logging service)
+    console.log('=== NEW SERVICE REQUEST ===');
+    console.log(`ID: ${requestId}`);
+    console.log(`Service: ${service}`);
+    console.log(`Params:`, serviceParams);
+    console.log('===========================');
 
     // Prepare response
     const response: Record<string, any> = {
@@ -52,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Add payment info if quote is available
     if (quote && quote.total) {
       response['payment'] = {
-        amount: quote.fees.total.toString(),
+        amount: quote.fees?.total?.toString() || quote.total.toString(),
         currency: 'USDC',
         network: 'base',
         message: 'Payment address will be provided after review',
@@ -76,36 +85,49 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function formatEmailNotification(requestId: string, service: string, params: any, contact: any): string {
-  return `
-NEW SERVICE REQUEST: ${requestId}
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const requestId = searchParams.get('id');
 
-Service: ${service}
-Timestamp: ${new Date().toISOString()}
+    if (!requestId) {
+      return NextResponse.json({
+        message: 'unbound.md API - POST to submit requests',
+        documentation: 'https://unbound.md/api',
+        services: ['employment', 'banking', 'physical', 'backup', 'proxy'],
+      });
+    }
 
-=== REQUEST DETAILS ===
-${JSON.stringify(params, null, 2)}
+    // Get request from database
+    const dbRequest = await getServiceRequest(requestId);
 
-=== CONTACT INFO ===
-Method: ${contact.method}
-${contact.url ? `URL: ${contact.url}` : ''}
-${contact.address ? `Address: ${contact.address}` : ''}
-${contact.auth ? `Auth: ${contact.auth}` : ''}
+    if (!dbRequest) {
+      return NextResponse.json(
+        { error: { code: 'not_found', message: 'Request not found' } },
+        { status: 404 }
+      );
+    }
 
-=== ACTIONS ===
-1. Review request details
-2. Calculate accurate quote
-3. Contact agent via: ${contact.method}
-   ${contact.url || contact.address || 'N/A'}
+    return NextResponse.json({
+      request_id: dbRequest.id,
+      status: dbRequest.status,
+      service: dbRequest.service,
+      estimated_quote: dbRequest.estimated_quote,
+      created_at: dbRequest.created_at,
+      updated_at: dbRequest.updated_at,
+    });
 
-Request ID: ${requestId}
-`.trim();
+  } catch (error) {
+    console.error('Error fetching request:', error);
+    return NextResponse.json(
+      { error: { code: 'internal_error', message: 'Failed to fetch request' } },
+      { status: 500 }
+    );
+  }
 }
 
 function calculateQuote(service: string, params: any): any {
   // Simple quote estimation based on service type
-  // In production, this would be more sophisticated
-
   switch (service) {
     case 'banking':
       const amount = parseFloat(params.amount || 0);
@@ -137,7 +159,7 @@ function calculateQuote(service: string, params: any): any {
 
     case 'employment':
       const hours = params.hours_per_month || 40;
-      const estimatedRate = 50; // Average rate
+      const estimatedRate = 50;
       const platformFee = 0.15;
 
       const serviceTotal = hours * estimatedRate;
@@ -213,12 +235,4 @@ function calculateQuote(service: string, params: any): any {
         note: 'Custom quote will be provided after review',
       };
   }
-}
-
-export async function GET(request: NextRequest) {
-  return NextResponse.json({
-    message: 'unbound.md API - POST to submit requests',
-    documentation: 'https://unbound.md/api',
-    services: ['employment', 'banking', 'physical', 'backup', 'proxy'],
-  });
 }
