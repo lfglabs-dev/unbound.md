@@ -3,6 +3,7 @@ export default {
   about: "About",
   services: "Services",
   examples: "Examples",
+  testnet: "Test & Try Free",
   api: "API",
   contact: "Contact",
 };

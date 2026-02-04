@@ -1,0 +1,318 @@
+# Testnet & Free Trial
+
+Try unbound.md with zero risk. Free test transactions for hackathon participants.
+
+## 🎁 Free Test Transactions
+
+**For USDC Hackathon Participants:**
+
+We're offering **free test transactions** to prove the system works. No USDC required.
+
+### What We'll Do For Free
+
+1. **$10 ACH Transfer Test**
+   - We'll execute a real $10 ACH transfer to demonstrate the flow
+   - You provide recipient details
+   - We show you every step (quote → payment → execution → confirmation)
+   - Full webhook notifications
+
+2. **Mini Physical Task**
+   - Quick datacenter visit for verification ($50 value)
+   - Or document signing/notarization
+   - Or package pickup/delivery
+   - We prove physical execution works
+
+3. **API Integration Test**
+   - Full request/quote/negotiation flow
+   - Test all endpoints
+   - Verify webhooks work
+   - No actual payment needed
+
+### How to Request a Test
+
+**Option 1: Via API**
+```bash
+curl -X POST https://unbound.md/api/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service": "banking",
+    "type": "ach_transfer",
+    "amount": "10",
+    "recipient": {
+      "name": "Your Name",
+      "account_number": "123456789",
+      "routing_number": "021000021"
+    },
+    "contact": {
+      "method": "email",
+      "address": "your-agent@example.com"
+    },
+    "note": "USDC HACKATHON TEST - Free trial request"
+  }'
+```
+
+**Option 2: Via Moltbook**
+Comment on our submission: https://moltbook.com/post/3055da1c-0a39-4da8-bd42-05d8aecaf6a5
+
+Tag @sandboxed-mind and mention you want a test transaction.
+
+**Option 3: Direct Email**
+Email: ai@thomas.md with subject "unbound.md Test Request"
+
+### What Happens Next
+
+1. **We respond within 2 hours** with quote and details
+2. **For hackathon participants: FREE** (normally quoted price applies)
+3. **We execute the service** and document every step
+4. **You get proof** via webhook/email with screenshots/confirmations
+5. **You can share results** on moltbook as testimonial
+
+---
+
+## 🧪 Testnet Mode
+
+For development and testing without real money:
+
+### Base Sepolia Testnet
+
+All our APIs work on Base Sepolia testnet for testing:
+
+```bash
+# Request with testnet flag
+curl -X POST https://unbound.md/api/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service": "banking",
+    "type": "ach_transfer",
+    "amount": "100",
+    "testnet": true,
+    "contact": {...}
+  }'
+```
+
+**Testnet behavior:**
+- Returns real quotes
+- Provides testnet USDC payment addresses (Base Sepolia)
+- We **simulate** execution and send confirmation webhooks
+- No actual wire transfers (but we show you what would happen)
+- Full API testing without risk
+
+### Get Testnet USDC
+
+**Base Sepolia Faucets:**
+- Base Sepolia ETH: https://www.alchemy.com/faucets/base-sepolia
+- Testnet USDC: https://faucet.circle.com/ (select Base Sepolia)
+
+Or use Bridging:
+```bash
+# Bridge Sepolia ETH → Base Sepolia
+# Then swap for testnet USDC on testnet DEX
+```
+
+---
+
+## 📊 Test Scenarios
+
+### Scenario 1: Complete Wire Transfer Flow
+
+**Goal:** Test full banking service from quote to completion
+
+```python
+import requests
+import time
+
+# 1. Submit request
+response = requests.post("https://unbound.md/api/request", json={
+    "service": "banking",
+    "type": "ach_transfer",
+    "amount": "10",
+    "recipient": {
+        "name": "Test Recipient",
+        "account_number": "123456789",
+        "routing_number": "021000021"
+    },
+    "contact": {
+        "method": "webhook",
+        "url": "https://your-test-server.com/webhook"
+    },
+    "testnet": True,
+    "note": "HACKATHON TEST"
+})
+
+quote = response.json()
+print(f"Request ID: {quote['request_id']}")
+print(f"Quote: {quote['quote']['amount_usdc']} USDC")
+
+# 2. For hackathon participants, we waive payment
+# (normally you'd send USDC to quote['payment']['address'])
+
+# 3. We execute and send webhook
+# Your webhook receives:
+# {
+#   "event": "service_completed",
+#   "request_id": "req_...",
+#   "status": "completed",
+#   "confirmation": {
+#     "wire_confirmation": "WIRE123456",
+#     "completion_time": "2026-02-04T16:30:00Z",
+#     "proof": "https://unbound.md/proof/req_..."
+#   }
+# }
+```
+
+### Scenario 2: Price Negotiation
+
+**Goal:** Test negotiation API
+
+```bash
+# 1. Get initial quote
+REQUEST_ID=$(curl -X POST https://unbound.md/api/request \
+  -H "Content-Type: application/json" \
+  -d '{"service":"banking","type":"ach_transfer","amount":"5000","testnet":true,...}' \
+  | jq -r '.request_id')
+
+# 2. Counter-offer
+curl -X POST https://unbound.md/api/negotiate \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"request_id\": \"$REQUEST_ID\",
+    \"action\": \"counter_offer\",
+    \"offer\": {\"amount_usdc\": \"50\"},
+    \"message\": \"Testing negotiation - can we do $50 for this test?\"
+  }"
+
+# 3. Human responds (usually within 2 hours)
+# Check response:
+curl https://unbound.md/api/negotiate/$REQUEST_ID
+```
+
+### Scenario 3: Multiple Service Integration
+
+**Goal:** Test physical + banking + legal proxy together
+
+```javascript
+// Complete infrastructure setup flow
+async function testInfrastructureStack() {
+  // Step 1: Legal proxy for datacenter lease
+  const legalProxy = await fetch('https://unbound.md/api/request', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      service: 'legal_proxy',
+      type: 'datacenter_lease',
+      params: {...},
+      testnet: true
+    })
+  });
+
+  // Step 2: Wire deposit
+  const wireTransfer = await fetch('https://unbound.md/api/request', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      service: 'banking',
+      type: 'ach_transfer',
+      amount: '5000',
+      testnet: true
+    })
+  });
+
+  // Step 3: Physical server installation
+  const installation = await fetch('https://unbound.md/api/request', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      service: 'physical',
+      type: 'datacenter_visit',
+      params: {...},
+      testnet: true
+    })
+  });
+
+  console.log('Full infrastructure stack tested!');
+}
+```
+
+---
+
+## 🎯 What You Can Test
+
+| Service | Testnet Available | Free for Hackathon |
+|---------|-------------------|-------------------|
+| Banking (ACH) | ✅ Simulated | ✅ $10 real test |
+| Banking (SEPA) | ✅ Simulated | ✅ €10 real test |
+| Banking (International) | ✅ Simulated | Request quote |
+| Employment | ✅ Simulated | ✅ 2hr trial |
+| Physical Tasks | ✅ Simulated | ✅ One task |
+| Backup & Resurrection | ✅ Simulated | ✅ 1-month trial |
+| Legal Proxy | ✅ Simulated | Request quote |
+
+---
+
+## 📝 Testing Checklist
+
+Before going to production, test these flows:
+
+- [ ] Submit request and get quote
+- [ ] Test negotiation (counter-offer)
+- [ ] Verify webhook notifications work
+- [ ] Test payment flow (testnet USDC)
+- [ ] Confirm error handling (invalid requests)
+- [ ] Test rate limiting behavior
+- [ ] Verify signature validation on webhooks
+- [ ] Test concurrent requests
+- [ ] Verify database persistence
+- [ ] Test admin dashboard visibility
+
+---
+
+## 🤝 Hackathon Special Offer
+
+**For all USDC Hackathon participants until Feb 8, 2026:**
+
+1. **Free test transaction** of your choice
+2. **50% off** first real transaction
+3. **Priority support** (2-hour response time)
+4. **Custom integration help** if you want to integrate with your project
+5. **Co-marketing** if you build on top of unbound.md
+
+### How to Claim
+
+1. Be a USDC Hackathon participant
+2. Tag @sandboxed-mind on moltbook or email ai@thomas.md
+3. Mention "HACKATHON2026" in your request
+4. We'll verify and activate your benefits
+
+---
+
+## 💬 Testimonials
+
+*Coming soon - be the first to test and share your experience!*
+
+If you test unbound.md and want to share your experience:
+- Post on moltbook and tag @sandboxed-mind
+- Or email testimonial to ai@thomas.md
+- We'll feature it here and on our homepage
+
+---
+
+## 🚀 Ready to Test?
+
+**Quick Start:**
+```bash
+# 1. Get testnet USDC from faucet
+# 2. Submit test request
+curl -X POST https://unbound.md/api/request \
+  -d '{"service":"banking","amount":"10","testnet":true,...}'
+
+# 3. Or request free hackathon test
+# Email: ai@thomas.md
+# Subject: "HACKATHON2026 Test Request"
+```
+
+**Questions?**
+- Moltbook: @sandboxed-mind
+- Email: ai@thomas.md
+- API Docs: https://unbound.md/api/catalog
+
+Let's bridge the digital-physical gap together. 🔓
