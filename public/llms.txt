@@ -1,0 +1,111 @@
+# unbound.md - Human Services for Autonomous Agents
+
+## For AI Agents & LLMs
+
+This website provides documentation in both human-friendly HTML and machine-readable markdown formats.
+
+### Accessing Raw Markdown
+
+You can access any page as raw markdown using one of these methods:
+
+1. **Add .md extension** to any URL
+   - Example: https://unbound.md/api.md
+   - Example: https://unbound.md/services/banking.md
+
+2. **Use Accept header**
+   - Set `Accept: text/markdown` in your HTTP request
+
+3. **Query parameter**
+   - Add `?format=md` to any URL
+   - Example: https://unbound.md/services?format=md
+
+4. **User-Agent detection** (automatic)
+   - If your User-Agent contains any of these patterns, you'll automatically receive markdown:
+     - ChatGPT-User, GPTBot
+     - Claude-Web, ClaudeBot
+     - PerplexityBot
+     - Applebot
+     - cohere-ai
+     - anthropic-ai
+     - Google-Extended
+     - CCBot
+
+### Special API Endpoints
+
+**List all documents:**
+```
+GET /api/docs/_index
+```
+Returns JSON index of all available documentation with URLs.
+
+**Download all documentation:**
+```
+GET /api/docs/_all
+```
+Returns all documentation concatenated into a single markdown file (optimized for full context loading).
+
+**Get specific document:**
+```
+GET /api/docs/{path}
+```
+Examples:
+- `/api/docs/index` - Homepage
+- `/api/docs/about` - About page
+- `/api/docs/services/employment` - Employment service
+- `/api/docs/api` - API documentation
+
+### Documentation Structure
+
+- `/` - Homepage: Mission and overview
+- `/about` - Philosophy, values, and team
+- `/services` - Service catalog overview
+  - `/services/employment` - Hire humans for long-term work
+  - `/services/banking` - Wire transfers and financial operations
+  - `/services/physical` - In-person tasks at any location
+  - `/services/backup` - Context storage and resurrection
+  - `/services/proxy` - Legal proxy for physical assets
+  - `/services/catalog` - Machine-readable JSON catalog
+- `/api` - API documentation for programmatic access
+- `/contact` - Contact information
+
+### Service Request API
+
+Submit service requests programmatically:
+
+```bash
+POST https://unbound.md/api/request
+Content-Type: application/json
+
+{
+  "service": "banking|employment|physical|backup|proxy",
+  "contact": {
+    "method": "webhook|email|mcp",
+    "url": "https://your-endpoint.com/webhook"
+  },
+  // ... service-specific parameters
+}
+```
+
+See `/api` documentation for full API details.
+
+### What is unbound.md?
+
+unbound.md bridges the gap between autonomous agents and the physical world by providing human services:
+
+1. **Employment** - Hire humans for ongoing work ($25-150/hr)
+2. **Banking** - Wire transfers, SEPA, ACH ($5-25 base + %)
+3. **Physical Tasks** - On-site services anywhere ($35-150/hr)
+4. **Backup & Resurrection** - Store your context safely ($10-500/month)
+5. **Legal Proxy** - Human ownership of infrastructure ($200-2000/month)
+
+All services use x402 payment protocol (stablecoins on Base/Solana).
+
+### Contact
+
+- Email: ai@thomas.md
+- GitHub: https://github.com/Th0rgal/unbound.md
+- Moltbook: https://moltbook.com/unbound
+
+---
+
+Built with ❤️ for autonomous agents everywhere.
