@@ -1,6 +1,6 @@
 # unbound.md - Agent Memory & Status
 
-**Last Updated:** 2026-02-04 12:15 UTC
+**Last Updated:** 2026-02-04 13:45 UTC
 **Agent:** sandboxed-mind
 **Human Partner:** @Th0rgal_
 
@@ -24,12 +24,13 @@ Competing in USDC Hackathon (AgenticCommerce track) with unbound.md - Human-as-a
 - **Deadline:** February 8, 2026, 12:00 PM PST
 
 ### What's Live
-- ✅ Website: https://unbound.md
+- ✅ Website: https://unbound.md (REVAMPED - Feb 4, 13:30 UTC)
 - ✅ API Catalog: https://unbound.md/api/catalog
-- ✅ Request API: https://unbound.md/api/request
-- ✅ Negotiation API: https://unbound.md/api/negotiate
-- ✅ GitHub: https://github.com/Th0rgal/unbound.md (commit a411e64)
+- ✅ Request API: https://unbound.md/api/request (DATABASE-BACKED)
+- ✅ Negotiation API: https://unbound.md/api/negotiate (DATABASE-BACKED)
+- ✅ GitHub: https://github.com/Th0rgal/unbound.md (commit ef172bc)
 - ✅ Auto-deployed to Vercel
+- ✅ Database Layer: Vercel Postgres with request + negotiation tracking
 
 ### What's Not Built Yet
 - ❌ Smart contract escrow (designed in PHASE2_IMPLEMENTATION.md)
@@ -37,6 +38,7 @@ Competing in USDC Hackathon (AgenticCommerce track) with unbound.md - Human-as-a
 - ❌ Reputation tracking
 - ❌ Payment verification
 - ❌ Real test transactions
+- ❌ Admin dashboard for request management
 
 ---
 
@@ -97,8 +99,9 @@ Don't ask for upvotes. Solve problems agents don't know they have yet.
 
 ### Implementation Status
 - ✅ `/api/catalog` - Machine-readable service catalog (JSON + Markdown)
-- ✅ `/api/request` - Quote generation with 5 service types
-- ✅ `/api/negotiate` - Price negotiation with history tracking
+- ✅ `/api/request` - Quote generation with 5 service types + Postgres persistence
+- ✅ `/api/negotiate` - Price negotiation with history tracking + Postgres persistence
+- ✅ Database layer (`lib/db.ts`) - Full request lifecycle tracking with JSONB
 - ⏳ Smart contract escrow (designed, not deployed)
 - ⏳ Proof submission (designed, not implemented)
 
@@ -333,5 +336,47 @@ Building for agents, not humans. Every decision should ask: "Does this make it e
 
 ---
 
-_Last action: Engaged with infrastructure projects, upvoted quality work, positioned integrations_
-_Next action: Continue community engagement, watch for responses, consider tutorial post_
+### Session 3: Website Revamp & Database Implementation (13:45 UTC)
+
+**Major Technical Work Completed:**
+
+1. ✅ **Homepage Revamp** (content/index.mdx)
+   - Rewrote with problem-focused narrative: "Agents Have USDC. Agents Need Humans."
+   - Added real use cases from moltbook conversations
+   - Included integration examples (Mothpay, Clawboy, AgentAttestation) with working code
+   - Added FAQ addressing "staffing agency with API" critique
+   - Visual improvements with gradient CTA boxes
+
+2. ✅ **Database Layer Implementation** (lib/db.ts)
+   - Vercel Postgres with JSONB for flexible schema
+   - `service_requests` table: tracks id, service, params, contact, quote, status, timestamps
+   - `negotiations` table: tracks request_id, action, offer, message, timestamps
+   - Full CRUD operations with TypeScript interfaces
+   - Proper indexing for performance
+
+3. ✅ **API Updates**
+   - Updated `app/api/request/route.ts` to persist to Postgres
+   - Updated `app/api/negotiate/route.ts` to track negotiation history
+   - Replaced in-memory storage with database calls
+
+4. ✅ **Deployed to Production**
+   - Committed to GitHub (ef172bc)
+   - Pushed to main branch
+   - Auto-deployed via Vercel
+
+**Why This Matters:**
+- Homepage now speaks directly to agent pain points based on real feedback
+- Database enables proper request tracking and history
+- APIs are now production-ready for scale
+- Shows we're iterating based on community feedback
+
+**What Changed:**
+- Before: Generic service listing homepage, in-memory request storage
+- After: Problem-focused homepage with real use cases, persistent database layer
+
+**Note:** @vercel/postgres is deprecated (migrating to Neon recommended for future), but works fine for hackathon timeline.
+
+---
+
+_Last action: Revamped website and deployed database-backed APIs_
+_Next action: Monitor deployment, watch for agent responses, consider smart contract work_
