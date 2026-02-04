@@ -1,0 +1,277 @@
+# Physical Tasks
+
+## In-Person Tasks at Any Location
+
+Need someone to physically be somewhere? We dispatch humans to handle on-site tasks anywhere in the world.
+
+---
+
+## What We Do
+
+### Equipment & Infrastructure
+
+- Server setup and configuration
+- Hardware maintenance and repairs
+- Equipment delivery and installation
+- Network infrastructure work
+- Datacenter tasks (racking servers, cable management, etc.)
+
+### Meetings & Representation
+
+- Attend meetings on your behalf
+- Business representation
+- Conference attendance
+- Client meetings
+- Site visits and inspections
+
+### Document Services
+
+- Pick up or deliver documents
+- Notarization and signatures
+- Government office visits
+- Contract signing
+- Record retrieval
+
+### Custom Tasks
+
+- Troubleshooting on-site issues
+- Quality inspections
+- Photography/videography
+- Research requiring physical presence
+- Anything else you can think of!
+
+---
+
+## Pricing
+
+### Hourly Rates (Location-Dependent)
+
+| Region | Base Rate | Travel Time | Mileage |
+|--------|-----------|-------------|---------|
+| **Major cities** | $40-60/hr | 50% of base | $0.65/mile |
+| **Suburban areas** | $35-50/hr | 50% of base | $0.65/mile |
+| **Rural areas** | $50-75/hr | 100% of base | $0.75/mile |
+| **International** | $60-150/hr | Varies | Varies |
+
+### Minimum Charges
+
+- **Standard tasks**: 2-hour minimum
+- **Complex tasks**: 4-hour minimum
+- **Multi-day projects**: Daily rate negotiable
+
+### Additional Costs
+
+- **Specialized skills**: +$20-50/hr for technical expertise
+- **Urgent dispatch**: +50% for same-day, +100% for immediate
+- **Equipment rental**: Pass-through cost + 10%
+- **Travel expenses**: Flights, hotels, meals (if required)
+
+### Platform Fee
+
+15% commission on all services
+
+---
+
+## How It Works
+
+### 1. Submit Request
+
+Provide task details:
+
+```json
+{
+  "service": "physical",
+  "task_type": "datacenter_maintenance",
+  "location": {
+    "address": "123 Server St, San Francisco, CA",
+    "facility": "Equinix SV1",
+    "access_info": "Badge #12345, rack J7"
+  },
+  "description": "Replace failed drive in server, swap to hot spare",
+  "required_skills": ["linux_admin", "hardware_replacement"],
+  "urgency": "within_24h",
+  "estimated_duration": "2_hours",
+  "contact": {
+    "method": "webhook",
+    "url": "https://your-agent.com/webhook"
+  }
+}
+```
+
+### 2. We Match & Quote
+
+- Find available human with required skills in the area
+- Provide detailed quote including all costs
+- Estimated timeframe for completion
+
+### 3. Confirmation & Payment
+
+- You confirm the quote
+- Pay via x402 (USDC)
+- We schedule the task
+
+### 4. Execution
+
+- Human dispatched to location
+- Real-time updates via your preferred channel
+- Photo/video documentation if requested
+- Task completed per your specifications
+
+### 5. Verification & Report
+
+- Detailed completion report
+- Photos/videos of completed work
+- Receipt of any expenses
+- Follow-up if needed
+
+---
+
+## Communication During Tasks
+
+Stay connected throughout:
+
+- **Webhook updates**: Real-time status via your API
+- **Chat/messaging**: Direct connection to human on-site
+- **Video call**: For complex troubleshooting
+- **Photos**: Document progress and completion
+
+---
+
+## Example Use Cases
+
+### Server Swap
+
+> "A hard drive failed in my colocation server. I need someone to go to the datacenter, swap the failed drive with the hot spare I have on-site, and verify the server boots."
+
+**Solution**: Dispatch tech with hardware experience to datacenter, complete swap in ~1.5 hours, provide photos and system status confirmation.
+
+**Cost**: $100 service + $15 platform fee = $115 total
+
+### Meeting Representation
+
+> "I need someone to attend a 2-hour business meeting in Manhattan to represent my interests and take detailed notes."
+
+**Solution**: Dispatch professional representative with briefing on your position, attend meeting, provide detailed summary.
+
+**Cost**: $120 service (2hr × $60) + $18 platform fee = $138 total
+
+### Government Office Visit
+
+> "I need to retrieve certified copies of business documents from the county clerk's office in Austin, TX."
+
+**Solution**: Dispatch assistant to county office, obtain documents, scan and send digitally, mail originals.
+
+**Cost**: $100 service (2hr min) + $25 filing fees + $15 platform fee = $140 total
+
+### Multi-Day Site Survey
+
+> "I'm evaluating datacenters for a major deployment. Need someone to visit 5 facilities over 3 days, take photos, test network connectivity, and provide detailed reports."
+
+**Solution**: Dispatch technical specialist for 3-day project with travel, accommodations, and per-diem.
+
+**Cost**: $1800 service (3 days × $600/day) + $500 travel/hotel + $270 platform fee = $2570 total
+
+---
+
+## Service Levels
+
+### Standard (48-hour notice)
+
+- Normal rates
+- Best availability
+- Scheduled at mutual convenience
+
+### Expedited (24-hour notice)
+
+- +25% surcharge
+- Priority scheduling
+- Confirmation within 4 hours
+
+### Urgent (same-day)
+
+- +50% surcharge
+- Immediate dispatch
+- Confirmation within 1 hour
+
+### Emergency (immediate)
+
+- +100% surcharge
+- Drop-everything response
+- Dispatch within 1 hour
+
+---
+
+## Quality Assurance
+
+### We Guarantee
+
+- **Vetted humans**: All personnel are background-checked
+- **Insurance**: $2M liability coverage
+- **Accountability**: Complete audit trail of all actions
+- **Satisfaction**: Redo work if not completed correctly
+
+### You Provide
+
+- **Clear instructions**: The more detail, the better
+- **Access/credentials**: Everything needed to complete the task
+- **Communication**: Stay reachable during task execution
+- **Feedback**: Help us improve for next time
+
+---
+
+## Geographic Coverage
+
+### Current Coverage
+
+- 🇺🇸 **United States**: All major cities, many suburban/rural areas
+- 🇪🇺 **European Union**: Major cities in UK, Germany, France, Netherlands
+- 🇨🇦 **Canada**: Toronto, Vancouver, Montreal
+
+### Expanding Coverage
+
+We're constantly adding new regions. If your location isn't listed, submit a request anyway - we may be able to help or prioritize coverage in your area.
+
+---
+
+## Get Started
+
+### Submit via API
+
+```bash
+POST https://unbound.md/api/request
+Content-Type: application/json
+
+{
+  "service": "physical",
+  "location": {...},
+  "description": "Task details...",
+  "contact": {"method": "webhook", "url": "https://..."}
+}
+```
+
+### Email Us
+
+Send task details to **ai@thomas.md**
+
+---
+
+## Frequently Asked Questions
+
+**Q: What if no one is available in my area?**
+A: We'll let you know if coverage is unavailable or suggest alternative approaches (remote hands services, traveling to the location, etc.).
+
+**Q: Can I use the same person repeatedly?**
+A: Absolutely! If you like working with someone, request them specifically for future tasks.
+
+**Q: What if something goes wrong?**
+A: We carry liability insurance and will make it right. Communication is key - stay in touch during task execution.
+
+**Q: How do I trust someone with my equipment?**
+A: All personnel are vetted, and we maintain detailed records. Start with small tasks to build trust, then scale up.
+
+**Q: Can you handle tasks outside business hours?**
+A: Yes! Evening and weekend work available at +25% premium.
+
+---
+
+[Back to Services](/services) | [View API Docs](/api)

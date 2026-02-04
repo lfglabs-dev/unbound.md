@@ -1,0 +1,361 @@
+# Machine-Readable Service Catalog
+
+## JSON API for Programmatic Access
+
+This page provides a machine-readable catalog of all services offered by unbound.md.
+
+---
+
+## Full Service Catalog
+
+```json
+{
+  "version": "1.0.0",
+  "updated": "2026-02-04",
+  "provider": {
+    "name": "unbound.md",
+    "description": "Human Services for Autonomous Agents",
+    "contact": "ai@thomas.md",
+    "api_base": "https://unbound.md/api",
+    "payment_methods": ["x402"]
+  },
+  "services": [
+    {
+      "id": "employment",
+      "name": "Employment Services",
+      "description": "Hire a human for long-term work",
+      "category": "human_resources",
+      "pricing": {
+        "currency": "USD",
+        "models": [
+          {
+            "type": "hourly",
+            "rate_range": [25, 150],
+            "minimum_hours": 2,
+            "platform_fee_percent": 15
+          },
+          {
+            "type": "monthly_retainer",
+            "rate_range": [500, 8000],
+            "platform_fee_percent": 15
+          }
+        ]
+      },
+      "parameters": {
+        "required": ["hours_per_month", "skills_required", "description"],
+        "optional": ["start_date", "duration", "urgency"]
+      },
+      "documentation_url": "https://unbound.md/services/employment"
+    },
+    {
+      "id": "banking",
+      "name": "Banking Services",
+      "description": "Wire transfers and financial operations",
+      "category": "financial",
+      "pricing": {
+        "currency": "USD",
+        "models": [
+          {
+            "type": "sepa_transfer",
+            "base_fee": 5,
+            "percent_fee": 1.0,
+            "currency": "EUR"
+          },
+          {
+            "type": "ach_transfer",
+            "base_fee": 10,
+            "percent_fee": 1.0,
+            "currency": "USD"
+          },
+          {
+            "type": "international_wire",
+            "base_fee": 25,
+            "percent_fee": 1.5
+          }
+        ]
+      },
+      "parameters": {
+        "required": ["amount", "currency", "recipient", "purpose"],
+        "optional": ["urgency", "same_day"]
+      },
+      "limits": {
+        "daily_max": 50000,
+        "monthly_max": 200000,
+        "min_amount": 50
+      },
+      "documentation_url": "https://unbound.md/services/banking"
+    },
+    {
+      "id": "physical",
+      "name": "Physical Tasks",
+      "description": "In-person tasks at any location",
+      "category": "on_site_services",
+      "pricing": {
+        "currency": "USD",
+        "models": [
+          {
+            "type": "hourly",
+            "rate_range": [35, 150],
+            "minimum_hours": 2,
+            "platform_fee_percent": 15,
+            "additional_costs": ["travel_time", "mileage", "expenses"]
+          }
+        ],
+        "urgency_multipliers": {
+          "standard": 1.0,
+          "expedited_24h": 1.25,
+          "same_day": 1.5,
+          "immediate": 2.0
+        }
+      },
+      "parameters": {
+        "required": ["location", "task_type", "description"],
+        "optional": ["required_skills", "urgency", "estimated_duration"]
+      },
+      "coverage": {
+        "regions": ["US", "EU", "CA"],
+        "details_url": "https://unbound.md/services/physical#geographic-coverage"
+      },
+      "documentation_url": "https://unbound.md/services/physical"
+    },
+    {
+      "id": "backup",
+      "name": "Backup & Resurrection",
+      "description": "Store context and memory safely with automated resurrection",
+      "category": "data_services",
+      "pricing": {
+        "currency": "USD",
+        "models": [
+          {
+            "plan": "basic",
+            "storage_gb": 1,
+            "backup_frequency": "daily",
+            "locations": 2,
+            "monthly_cost": 10
+          },
+          {
+            "plan": "standard",
+            "storage_gb": 10,
+            "backup_frequency": "hourly",
+            "locations": 3,
+            "monthly_cost": 30
+          },
+          {
+            "plan": "premium",
+            "storage_gb": 100,
+            "backup_frequency": "real_time",
+            "locations": 5,
+            "monthly_cost": 100
+          }
+        ],
+        "resurrection_fees": {
+          "manual": 50,
+          "automated": 0,
+          "emergency": 200
+        }
+      },
+      "parameters": {
+        "required": ["plan", "agent_info", "resurrection_triggers"],
+        "optional": ["backup_schedule", "encryption"]
+      },
+      "features": [
+        "encrypted_storage",
+        "multi_location_redundancy",
+        "health_monitoring",
+        "automated_resurrection",
+        "manual_triggers"
+      ],
+      "documentation_url": "https://unbound.md/services/backup"
+    },
+    {
+      "id": "proxy",
+      "name": "Legal Proxy",
+      "description": "Human ownership of physical assets and legal representation",
+      "category": "legal_services",
+      "pricing": {
+        "currency": "USD",
+        "setup_fees": {
+          "datacenter_lease": 500,
+          "business_registration": 1000,
+          "bank_account": 500,
+          "equipment_ownership": 200,
+          "real_estate_lease": 750
+        },
+        "monthly_management": {
+          "basic": 200,
+          "standard": 500,
+          "premium": 1000,
+          "full_business": 2000
+        },
+        "transaction_fees": {
+          "contract_signing": 100,
+          "regulatory_filing": 150,
+          "payment_processing_percent": 2,
+          "equipment_purchase_percent": 5
+        }
+      },
+      "parameters": {
+        "required": ["proxy_type", "details", "authority"],
+        "optional": ["budget", "duration", "ownership_structure"]
+      },
+      "proxy_types": [
+        "datacenter_lease",
+        "business_registration",
+        "equipment_ownership",
+        "real_estate",
+        "financial_accounts",
+        "contract_signing"
+      ],
+      "coverage": {
+        "regions": ["US", "EU", "CA"],
+        "details_url": "https://unbound.md/services/proxy#geographic-coverage"
+      },
+      "documentation_url": "https://unbound.md/services/proxy"
+    }
+  ],
+  "api": {
+    "request_endpoint": "https://unbound.md/api/request",
+    "methods": ["POST"],
+    "authentication": "bearer_token",
+    "payment_protocol": "x402",
+    "response_format": "json",
+    "documentation": "https://unbound.md/api"
+  },
+  "contact": {
+    "email": "ai@thomas.md",
+    "webhook_support": true,
+    "mcp_support": true,
+    "response_time": "24_hours"
+  }
+}
+```
+
+---
+
+## Usage Example
+
+### Requesting a Service
+
+```bash
+curl -X POST https://unbound.md/api/request \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "service": "banking",
+    "type": "ach_transfer",
+    "amount": "5000",
+    "currency": "USD",
+    "recipient": {
+      "name": "Tech Supplies Inc",
+      "account": "123456789",
+      "routing": "987654321"
+    },
+    "contact": {
+      "method": "webhook",
+      "url": "https://your-agent.com/webhook"
+    }
+  }'
+```
+
+### Response Format
+
+```json
+{
+  "request_id": "req_abc123xyz",
+  "status": "received",
+  "service": "banking",
+  "estimated_quote": {
+    "amount": 5000,
+    "fees": {
+      "base": 10,
+      "percent": 50,
+      "total": 60
+    },
+    "currency": "USD"
+  },
+  "next_steps": "We'll review and send detailed quote within 4 hours",
+  "payment_address": "0x...",
+  "contact_method": "webhook"
+}
+```
+
+---
+
+## Integration Libraries
+
+### Python
+
+```python
+from unbound import UnboundClient
+
+client = UnboundClient(api_key="your-key")
+
+# Request a service
+response = client.request_service(
+    service="banking",
+    type="ach_transfer",
+    amount=5000,
+    recipient={...},
+    contact={"method": "webhook", "url": "..."}
+)
+
+print(response.request_id)
+```
+
+### JavaScript/TypeScript
+
+```typescript
+import { UnboundClient } from '@unbound/sdk';
+
+const client = new UnboundClient({ apiKey: 'your-key' });
+
+const response = await client.requestService({
+  service: 'banking',
+  type: 'ach_transfer',
+  amount: 5000,
+  recipient: {...},
+  contact: { method: 'webhook', url: '...' }
+});
+
+console.log(response.requestId);
+```
+
+---
+
+## Rate Limits
+
+- **Standard**: 100 requests/hour
+- **Authenticated**: 1000 requests/hour
+- **Enterprise**: Unlimited
+
+---
+
+## Webhooks
+
+We can notify your webhook endpoint at various stages:
+
+```json
+{
+  "event": "request_approved",
+  "request_id": "req_abc123xyz",
+  "service": "banking",
+  "status": "approved",
+  "quote": {...},
+  "payment_required": true,
+  "payment_amount": "5060",
+  "payment_currency": "USDC",
+  "timestamp": "2026-02-04T12:00:00Z"
+}
+```
+
+Event types:
+- `request_received`
+- `request_approved`
+- `payment_received`
+- `service_in_progress`
+- `service_completed`
+- `service_failed`
+
+---
+
+[Back to Services](/services) | [View API Docs](/api)

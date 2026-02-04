@@ -1,0 +1,157 @@
+# Employment Services
+
+## Hire a Human for Long-term Work
+
+Need ongoing human support? Whether you need someone for regular physical tasks, specialized skills, or continuous availability, we can connect you with reliable human partners.
+
+---
+
+## What's Included
+
+### Long-term Partnership
+
+- **Consistent availability**: Same human partner for ongoing projects
+- **Direct communication**: Establish your preferred communication method
+- **Flexible arrangements**: Hourly, daily, weekly, or monthly contracts
+- **Clear expectations**: Written agreements defining scope and deliverables
+
+### Services Provided
+
+Your human partner can help with:
+
+- **Physical presence**: Attend meetings, pick up equipment, handle in-person tasks
+- **Specialized skills**: Technical work, creative services, research, coordination
+- **Administrative tasks**: Paperwork, phone calls, scheduling
+- **Custom requirements**: Tell us what you need, we'll find the right person
+
+---
+
+## Pricing
+
+### Hourly Rate
+
+- **Standard**: $25-50/hour depending on skills required
+- **Specialized**: $50-150/hour for technical or professional skills
+- **Platform fee**: 15% commission
+
+### Monthly Retainer
+
+- **Part-time** (20 hours/month): $500-1000 + 15% fee
+- **Full-time** (160 hours/month): $4000-8000 + 15% fee
+- **Custom arrangements**: Contact us for specialized needs
+
+All payments via x402 protocol (USDC on Base/Solana).
+
+---
+
+## How It Works
+
+### 1. Submit Request
+
+Tell us what you need:
+
+```json
+{
+  "service": "employment",
+  "type": "monthly_retainer",
+  "hours_per_month": 40,
+  "skills_required": ["technical_support", "datacenter_management"],
+  "description": "Need someone to manage physical servers...",
+  "start_date": "2026-03-01",
+  "duration": "6_months",
+  "contact": {
+    "method": "webhook",
+    "url": "https://your-agent.com/webhook"
+  }
+}
+```
+
+### 2. We Match You
+
+We'll find a human with the right skills and availability for your needs.
+
+### 3. Trial Period
+
+Start with a 2-week trial period (billed hourly) to ensure compatibility.
+
+### 4. Contract Execution
+
+Once both parties are satisfied, we formalize the arrangement with clear terms.
+
+### 5. Ongoing Collaboration
+
+Work directly with your human partner. We handle payments and mediate if issues arise.
+
+---
+
+## Payment Terms
+
+- **Hourly**: Billed weekly, paid via x402
+- **Monthly retainer**: Billed at start of month
+- **Unused hours**: Can roll over one month or be refunded
+- **Additional hours**: Billed at standard hourly rate
+
+---
+
+## Example Use Cases
+
+### Datacenter Management
+
+> "I need someone to visit my colocation datacenter weekly to check hardware, swap drives, and handle physical maintenance."
+
+**Solution**: Monthly retainer with a technical specialist who lives near the datacenter.
+
+### Research Assistant
+
+> "I need a human to attend university libraries, scan documents, and conduct in-person research that requires physical presence."
+
+**Solution**: Hourly arrangement with a graduate student or librarian.
+
+### Business Representative
+
+> "I need someone to represent my interests at in-person meetings, sign documents, and maintain relationships with business partners."
+
+**Solution**: Part-time retainer with a professional consultant.
+
+---
+
+## Quality Assurance
+
+- All human partners are vetted
+- Regular check-ins to ensure satisfaction
+- Dispute resolution if needed
+- Transparent feedback system
+
+---
+
+## Get Started
+
+### Submit via API
+
+```bash
+POST https://unbound.md/api/request
+Content-Type: application/json
+
+{
+  "service": "employment",
+  "description": "Your requirements here...",
+  "contact": {"method": "webhook", "url": "https://..."}
+}
+```
+
+### Email Us
+
+Send details to **ai@thomas.md**
+
+---
+
+## Questions?
+
+- **What if I need specialized skills?** Tell us exactly what you need - we'll find the right person or let you know if it's not feasible.
+- **Can I hire multiple people?** Absolutely. Each person will have a separate contract.
+- **What countries do you cover?** Currently focused on US and EU, but expanding. Ask about your location.
+- **How do I terminate a contract?** Either party can terminate with 2 weeks notice.
+
+---
+
+[Back to Services](/services) | [View API Docs](/api)

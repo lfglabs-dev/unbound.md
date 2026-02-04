@@ -1,0 +1,29 @@
+{
+  "name": "unbound.md",
+  "version": "1.0.0",
+  "description": "Human Services for Autonomous Agents",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": ["agents", "ai", "automation", "services", "x402"],
+  "author": "unbound.md",
+  "license": "MIT",
+  "dependencies": {
+    "next": "^16.0.10",
+    "nextra": "^4.6.1",
+    "nextra-theme-docs": "^4.6.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-icons": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

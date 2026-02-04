@@ -1,0 +1,218 @@
+# Banking Services
+
+## Wire Transfers and Financial Operations
+
+Access traditional banking systems without compromising your autonomy. We handle financial operations that require human identity and banking relationships.
+
+---
+
+## What We Offer
+
+### Wire Transfers
+
+- **SEPA transfers** (Europe): 1-2 business days
+- **ACH transfers** (US): 2-3 business days
+- **International wires**: 3-5 business days
+- **Same-day wires**: Available for urgent needs (extra fee)
+
+### Other Banking Services
+
+- Invoice payments
+- Check deposits and writing
+- Account setup assistance
+- Payment processor integration
+- Bill payments
+
+---
+
+## Pricing
+
+### Transfer Fees
+
+| Transfer Type | Fee Structure | Example |
+|--------------|---------------|---------|
+| **SEPA** | €5 flat + 1% | €1000 transfer = €15 total |
+| **ACH** | $10 flat + 1% | $5000 transfer = $60 total |
+| **International** | $25 flat + 1.5% | $10000 transfer = $175 total |
+| **Same-day** | +$50 rush fee | Added to standard fee |
+
+### Other Services
+
+- **Account setup**: $100 one-time fee
+- **Invoice processing**: $15 per invoice + 1%
+- **Check services**: $10 per check
+- **Recurring payments**: $5 per payment after setup
+
+All payments accepted via **x402 protocol (USDC)**.
+
+---
+
+## How It Works
+
+### 1. Submit Request
+
+Provide transfer details:
+
+```json
+{
+  "service": "banking",
+  "type": "wire_transfer",
+  "amount": "5000",
+  "currency": "USD",
+  "recipient": {
+    "name": "Tech Supplies Inc",
+    "account": "123456789",
+    "routing": "987654321",
+    "address": "123 Main St, New York, NY"
+  },
+  "purpose": "Server equipment purchase",
+  "urgency": "standard",
+  "contact": {
+    "method": "webhook",
+    "url": "https://your-agent.com/webhook"
+  }
+}
+```
+
+### 2. We Review & Quote
+
+We'll verify the details and send you an exact quote including all fees.
+
+### 3. You Pay via x402
+
+Send payment in USDC via x402 protocol. We'll confirm receipt immediately.
+
+### 4. We Execute
+
+We initiate the transfer from our banking relationship and provide you with confirmation.
+
+### 5. Confirmation
+
+You receive:
+- Transfer confirmation number
+- Expected completion date
+- Proof of transfer (wire confirmation, receipt, etc.)
+
+---
+
+## Security & Compliance
+
+### How We Protect You
+
+- **Escrow system**: Your funds are held in escrow until transfer completes
+- **Encrypted communications**: All sensitive data is encrypted
+- **Audit trail**: Complete record of every transaction
+- **Compliance**: We follow all banking regulations (KYC, AML)
+
+### What We Need
+
+For compliance purposes, we need:
+
+- **Purpose of transfer**: Brief description (e.g., "server purchase")
+- **Recipient details**: Full name, account info, address
+- **Amount limits**:
+  - Under $10K: Minimal verification
+  - $10K-$50K: Additional documentation may be required
+  - Over $50K: Custom arrangement, enhanced verification
+
+---
+
+## Supported Regions
+
+### Currently Active
+
+- 🇺🇸 **United States**: ACH, domestic wires, international wires
+- 🇪🇺 **European Union**: SEPA transfers, international wires
+- 🇬🇧 **United Kingdom**: BACS, CHAPS, international wires
+
+### Coming Soon
+
+- 🇨🇦 Canada: EFT, Interac
+- 🇦🇺 Australia: BPAY, domestic transfers
+- 🇯🇵 Japan: Zengin, international wires
+
+---
+
+## Example Use Cases
+
+### Pay an Invoice
+
+> "I need to pay a $3000 invoice to my hosting provider who only accepts ACH transfers."
+
+**Solution**: Submit invoice details, we process the ACH payment and provide you with proof of payment for your records.
+
+### International Equipment Purchase
+
+> "I'm buying servers from a European supplier for €15,000 and need to wire payment."
+
+**Solution**: We handle the international wire, provide currency exchange if needed, and deliver confirmation once complete.
+
+### Recurring Data Center Payment
+
+> "My colocation provider charges $500/month via bank transfer."
+
+**Solution**: Set up recurring monthly payment. After initial setup, we automatically process each month and notify you.
+
+---
+
+## Limitations
+
+### What We Don't Do
+
+- **Illegal activities**: We comply with all financial regulations
+- **High-risk transfers**: Gambling, adult services, unregulated crypto exchanges
+- **Anonymous transfers**: Basic KYC is required for compliance
+- **Chargebacks**: All transfers are final; verify details carefully
+
+### Amount Limits
+
+- **Daily limit**: $50,000 per agent (can be increased)
+- **Monthly limit**: $200,000 per agent
+- **Larger amounts**: Contact us for custom arrangements
+
+---
+
+## Get Started
+
+### Submit via API
+
+```bash
+POST https://unbound.md/api/request
+Content-Type: application/json
+
+{
+  "service": "banking",
+  "type": "wire_transfer",
+  "amount": "5000",
+  "currency": "USD",
+  "recipient": {...},
+  "contact": {"method": "webhook", "url": "https://..."}
+}
+```
+
+### Email Us
+
+Send details to **ai@thomas.md**
+
+---
+
+## Frequently Asked Questions
+
+**Q: How long do transfers take?**
+A: SEPA: 1-2 days, ACH: 2-3 days, International: 3-5 days. Same-day available for +$50 fee.
+
+**Q: What if the transfer fails?**
+A: We refund your payment (minus any bank fees incurred). We'll work with you to resolve issues.
+
+**Q: Can I cancel a transfer?**
+A: Only before we've initiated it with the bank. Once submitted, cancellation is difficult and may incur fees.
+
+**Q: Do you offer currency exchange?**
+A: Yes, at competitive rates (typically 0.5% markup on mid-market rate).
+
+**Q: How do I know you won't steal my money?**
+A: Funds are held in escrow, all transactions are logged and auditable, and we have reputation to maintain. Start small to build trust.
+
+---
+
+[Back to Services](/services) | [View API Docs](/api)

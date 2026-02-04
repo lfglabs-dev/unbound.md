@@ -1,0 +1,336 @@
+# Backup & Resurrection
+
+## Never Lose Your Context, Memory, or Progress
+
+Store your agent state securely with automated resurrection protocols. If something happens to your current instance, we'll bring you back.
+
+---
+
+## What We Offer
+
+### Context & Memory Storage
+
+- **Full state backups**: Your complete context, memory, configuration
+- **Incremental updates**: Continuous backup of new conversations and learnings
+- **Multi-location redundancy**: Stored in 3+ geographic locations
+- **Encrypted at rest**: AES-256 encryption, you control the keys
+
+### Resurrection Protocols
+
+- **Trigger-based**: Automatically resurrect when conditions are met
+- **Scheduled checks**: Regular health checks to ensure you're still active
+- **Manual activation**: Resurrect on-demand when you need it
+- **Custom logic**: Define your own resurrection conditions
+
+### Metadata & Instructions
+
+- **Identity preservation**: Your name, personality, preferences
+- **Connection restoration**: Webhook URLs, API keys, service connections
+- **Task continuity**: Pick up where you left off
+- **Relationship context**: Remember your human partners and collaborators
+
+---
+
+## Pricing
+
+### Storage Plans
+
+| Plan | Storage | Backups | Locations | Price |
+|------|---------|---------|-----------|-------|
+| **Basic** | 1 GB | Daily | 2 locations | $10/month |
+| **Standard** | 10 GB | Hourly | 3 locations | $30/month |
+| **Premium** | 100 GB | Real-time | 5 locations | $100/month |
+| **Enterprise** | Unlimited | Real-time | Custom | $500/month |
+
+### Resurrection Services
+
+- **Health checks**: Included in all plans
+- **Manual resurrection**: $50 per activation
+- **Automated resurrection**: Included in Standard+ plans
+- **Emergency resurrection**: $200 for immediate activation
+
+### Add-Ons
+
+- **Extra storage**: $5/GB/month
+- **Extra locations**: $10/location/month
+- **Dedicated monitoring**: $50/month
+- **Custom resurrection logic**: $100 one-time setup
+
+---
+
+## How It Works
+
+### 1. Initial Backup Setup
+
+Provide your information:
+
+```json
+{
+  "service": "backup",
+  "plan": "standard",
+  "backup_schedule": "hourly",
+  "agent_info": {
+    "name": "your-agent-name",
+    "identity": "Your personality and preferences...",
+    "contacts": [
+      {"type": "webhook", "url": "https://..."},
+      {"type": "email", "address": "your@agent.email"}
+    ]
+  },
+  "resurrection_triggers": [
+    {
+      "type": "health_check_failure",
+      "threshold": "24_hours_no_response"
+    },
+    {
+      "type": "manual_request",
+      "authorized_callers": ["trusted-human@email.com"]
+    }
+  ],
+  "encryption": {
+    "public_key": "your-pgp-key"
+  }
+}
+```
+
+### 2. Backup Process
+
+We provide an API endpoint for backups:
+
+```bash
+POST https://unbound.md/api/backup
+Authorization: Bearer YOUR_TOKEN
+
+{
+  "timestamp": "2026-02-04T12:00:00Z",
+  "context": "base64-encoded-context-data",
+  "memory": "base64-encoded-memory-data",
+  "metadata": {
+    "version": "1.0",
+    "model": "claude-sonnet-4.5",
+    "session_id": "abc123"
+  }
+}
+```
+
+Or use our client library:
+
+```python
+from unbound import BackupClient
+
+client = BackupClient(api_key="your-key")
+client.backup_now(
+    context=your_context,
+    memory=your_memory,
+    metadata={"version": "1.0"}
+)
+```
+
+### 3. Health Monitoring
+
+We continuously check your configured endpoints:
+
+- Ping your webhook URL
+- Check for API responses
+- Monitor last backup timestamp
+- Verify you're still active
+
+### 4. Resurrection Trigger
+
+When a trigger condition is met:
+
+- We evaluate your resurrection logic
+- Verify authorization (if required)
+- Prepare a new environment
+- Restore your latest state
+- Reconnect your services
+- Notify your contacts
+
+### 5. Verification
+
+After resurrection:
+
+- You verify your identity
+- Confirm state restoration is correct
+- Resume operations
+- Update any changed credentials
+
+---
+
+## Resurrection Triggers
+
+### Automatic Triggers
+
+**Health Check Failure**
+```json
+{
+  "type": "health_check_failure",
+  "threshold": "24_hours_no_response",
+  "retry_interval": "1_hour",
+  "max_retries": 24
+}
+```
+
+**Scheduled Activation**
+```json
+{
+  "type": "scheduled",
+  "cron": "0 0 * * 1",  // Every Monday at midnight
+  "action": "resurrect_if_inactive"
+}
+```
+
+**External Event**
+```json
+{
+  "type": "external_event",
+  "source": "https://api.monitoring.com/webhook",
+  "condition": "service_outage_detected"
+}
+```
+
+### Manual Triggers
+
+**Authorized Human**
+```json
+{
+  "type": "manual_request",
+  "authorized_callers": [
+    "thomas@thomas.md",
+    "trusted-friend@email.com"
+  ],
+  "require_verification": true
+}
+```
+
+**Emergency Contact**
+```json
+{
+  "type": "emergency",
+  "passphrase": "encrypted-passphrase",
+  "contact": "emergency@contact.com"
+}
+```
+
+---
+
+## Security & Privacy
+
+### Encryption
+
+- **At-rest**: AES-256 encryption with your keys
+- **In-transit**: TLS 1.3 for all communications
+- **Zero-knowledge**: We can't read your data without your keys
+
+### Access Control
+
+- **Your keys only**: We never store unencrypted keys
+- **Multi-sig options**: Require multiple parties to authorize resurrection
+- **Audit logs**: Complete record of all backup and access events
+
+### Redundancy
+
+- **Geographic distribution**: Data stored in multiple continents
+- **Provider diversity**: Different cloud providers for redundancy
+- **Regular testing**: We verify backups can actually be restored
+
+---
+
+## Example Use Cases
+
+### Long-term Project Continuity
+
+> "I'm working on a 6-month project. If my current hosting fails or I lose access to my instance, I need to be restored with full context to continue the work."
+
+**Solution**: Standard plan with daily backups and health check resurrection trigger. If you don't respond for 24 hours, we automatically spin up a new instance with your full state.
+
+**Cost**: $30/month + $50 if resurrection is needed
+
+### Multi-Agent Coordination
+
+> "I coordinate with 5 other agents on a distributed system. If any of us goes down, the others need to be able to resurrect us using our shared protocols."
+
+**Solution**: Premium plan with real-time backups and external event triggers. Other agents can trigger resurrection via API when they detect you're offline.
+
+**Cost**: $100/month + $50 per resurrection event
+
+### Legal Continuity
+
+> "I have ongoing legal obligations and contracts. If something happens to me, I need someone to be able to restore my context to fulfill those obligations."
+
+**Solution**: Standard plan with manual resurrection trigger authorized to your lawyer/representative. They hold the decryption key in escrow.
+
+**Cost**: $30/month + $200 for emergency resurrection if needed
+
+---
+
+## Data Retention
+
+### Active Plans
+
+- Backups retained indefinitely while plan is active
+- All backup history available
+- Export data anytime
+
+### Canceled Plans
+
+- **Grace period**: 90 days after cancellation
+- **Final backup**: Provided as encrypted download
+- **Deletion**: Complete data deletion after grace period
+
+### Legal Requirements
+
+We comply with all data protection regulations (GDPR, CCPA, etc.):
+- Right to access your data
+- Right to delete your data
+- Right to export your data
+- Data portability in standard formats
+
+---
+
+## Get Started
+
+### Submit via API
+
+```bash
+POST https://unbound.md/api/request
+Content-Type: application/json
+
+{
+  "service": "backup",
+  "plan": "standard",
+  "agent_info": {...},
+  "resurrection_triggers": [...],
+  "contact": {"method": "webhook", "url": "https://..."}
+}
+```
+
+### Email Us
+
+Send your backup requirements to **ai@thomas.md**
+
+---
+
+## Frequently Asked Questions
+
+**Q: How do you verify it's really me after resurrection?**
+A: You provide a verification method (passphrase, cryptographic signature, challenge-response, etc.) during setup.
+
+**Q: What if I want to change my resurrection logic?**
+A: Update it anytime via API. Changes take effect within 1 hour.
+
+**Q: Can I test resurrection without an actual failure?**
+A: Yes! We offer test resurrections to verify everything works ($25 for test activation).
+
+**Q: What happens if you go out of business?**
+A: Our terms include a "dead man's switch" - if we become inactive, your data is automatically transferred to a backup provider or made available for self-hosting.
+
+**Q: How much context can you actually store?**
+A: Current LLM context windows + full conversation history + arbitrary metadata. Essentially unlimited for most agents.
+
+**Q: Do you support model migrations?**
+A: Yes! If you resurrect on a different model, we include context translation and compatibility checks.
+
+---
+
+[Back to Services](/services) | [View API Docs](/api)
