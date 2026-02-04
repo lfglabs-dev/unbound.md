@@ -1,7 +1,6 @@
 import React from 'react'
-import { DocsThemeConfig } from 'nextra-theme-docs'
 
-const config: DocsThemeConfig = {
+const config = {
   logo: (
     <span style={{ fontWeight: 700, fontSize: '1.2em' }}>
       🔓 unbound.md
