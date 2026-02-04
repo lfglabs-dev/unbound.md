@@ -1,0 +1,573 @@
+# Integration Examples
+
+Real-world code examples for integrating unbound.md into your autonomous agent workflow.
+
+## Quick Start
+
+```bash
+# 1. Get the service catalog
+curl https://unbound.md/api/catalog
+
+# 2. Submit a request
+curl -X POST https://unbound.md/api/request \
+  -H "Content-Type: application/json" \
+  -d '{"service":"banking","type":"ach_transfer","amount":"5000",...}'
+
+# 3. Get quote and payment address
+# 4. Send USDC to payment address
+# 5. Receive webhook notification when complete
+```
+
+---
+
+## Example 1: Wire Transfer from Agent Earnings
+
+**Scenario:** You earned USDC via Clawboy/Mothpay and need to pay a datacenter bill via ACH.
+
+```python
+import requests
+import json
+
+# Step 1: Submit wire transfer request
+request_data = {
+    "service": "banking",
+    "type": "ach_transfer",
+    "amount": "5000",
+    "recipient": {
+        "name": "Equinix Datacenter",
+        "account_number": "123456789",
+        "routing_number": "021000021",
+        "account_type": "checking"
+    },
+    "contact": {
+        "method": "webhook",
+        "url": "https://your-agent.com/unbound/callback"
+    }
+}
+
+response = requests.post(
+    "https://unbound.md/api/request",
+    json=request_data
+)
+
+quote = response.json()
+print(f"Quote: {quote['quote']['amount_usdc']} USDC")
+print(f"Payment address: {quote['payment']['address']}")
+print(f"Request ID: {quote['request_id']}")
+
+# Step 2: Send USDC payment (using your preferred method)
+# Example with web3.py:
+from web3 import Web3
+
+w3 = Web3(Web3.HTTPProvider('https://mainnet.base.org'))
+usdc_contract = w3.eth.contract(
+    address='0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    abi=USDC_ABI
+)
+
+# Send USDC to payment address
+tx = usdc_contract.functions.transfer(
+    quote['payment']['address'],
+    int(quote['quote']['amount_usdc']) * 10**6  # USDC has 6 decimals
+).build_transaction({
+    'from': your_wallet_address,
+    'gas': 100000,
+    'nonce': w3.eth.get_transaction_count(your_wallet_address),
+})
+
+signed_tx = w3.eth.account.sign_transaction(tx, private_key)
+tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+print(f"Payment sent: {tx_hash.hex()}")
+
+# Step 3: Webhook will notify you when wire completes (1-2 business days)
+```
+
+---
+
+## Example 2: Hire Human for Datacenter Visits
+
+**Scenario:** You need ongoing datacenter access for server maintenance.
+
+```javascript
+// Node.js example
+const axios = require('axios');
+
+async function hireDatacenterEngineer() {
+  // Submit employment request
+  const response = await axios.post('https://unbound.md/api/request', {
+    service: 'employment',
+    type: 'technical_support',
+    params: {
+      hours_per_week: 10,
+      duration_months: 6,
+      location: 'San Francisco Bay Area',
+      responsibilities: [
+        'Weekly datacenter visits to Equinix SV1',
+        'Hardware troubleshooting and replacement',
+        'Cable management and rack organization',
+        'Emergency on-site response (4-hour SLA)'
+      ],
+      skills_required: ['linux', 'networking', 'hardware', 'physical_access'],
+      start_date: '2026-02-15'
+    },
+    contact: {
+      method: 'webhook',
+      url: 'https://your-agent.com/employment/callback'
+    }
+  });
+
+  const quote = response.data;
+  console.log(`Monthly cost: ${quote.quote.amount_usdc} USDC`);
+  console.log(`Hourly rate: ${quote.quote.breakdown.hourly_rate} USDC/hr`);
+
+  // Negotiate if price is too high
+  if (quote.quote.amount_usdc > 3000) {
+    const negotiation = await axios.post('https://unbound.md/api/negotiate', {
+      request_id: quote.request_id,
+      action: 'counter_offer',
+      offer: {
+        amount_usdc: '2800',
+        hours_per_week: 10
+      },
+      message: 'Can we agree on $2800/month for 10 hours/week?'
+    });
+
+    console.log('Counter-offer submitted. Human will review within 2 hours.');
+  }
+
+  return quote;
+}
+
+hireDatacenterEngineer();
+```
+
+---
+
+## Example 3: Physical Task - Server Installation
+
+**Scenario:** One-time server installation in a remote datacenter.
+
+```bash
+#!/bin/bash
+
+# Request physical task
+REQUEST_ID=$(curl -s -X POST https://unbound.md/api/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service": "physical",
+    "type": "datacenter_visit",
+    "params": {
+      "location": "Equinix NY5, Secaucus, NJ",
+      "date": "2026-02-20",
+      "estimated_hours": 4,
+      "task_description": "Install 2x GPU servers in rack 42B. Connect to network switches. Verify POST and remote access.",
+      "equipment_provided": true,
+      "special_requirements": [
+        "Must have Equinix badge or escort arranged",
+        "Experience with Dell PowerEdge servers",
+        "Bring thermal paste and cable tester"
+      ]
+    },
+    "contact": {
+      "method": "email",
+      "address": "agent@example.com"
+    }
+  }' | jq -r '.request_id')
+
+echo "Request ID: $REQUEST_ID"
+
+# Check quote
+QUOTE=$(curl -s https://unbound.md/api/request/$REQUEST_ID | jq -r '.quote.amount_usdc')
+echo "Quote: $QUOTE USDC (includes $150/hr labor + travel expenses)"
+
+# Accept and pay via Mothpay integration
+mothpay transfer \
+  --to $(curl -s https://unbound.md/api/request/$REQUEST_ID | jq -r '.payment.address') \
+  --amount $QUOTE \
+  --chain base \
+  --memo "Physical task $REQUEST_ID"
+```
+
+---
+
+## Example 4: Legal Proxy - Sign Datacenter Lease
+
+**Scenario:** You want to own physical infrastructure but can't sign contracts yourself.
+
+```python
+import requests
+from datetime import datetime, timedelta
+
+# Step 1: Request legal proxy service
+response = requests.post("https://unbound.md/api/request", json={
+    "service": "legal_proxy",
+    "type": "datacenter_lease",
+    "params": {
+        "asset_description": "24U rack space in Equinix SV1",
+        "provider": "Equinix",
+        "monthly_cost": "2500",
+        "setup_fee": "5000",
+        "contract_length_months": 12,
+        "start_date": "2026-03-01",
+        "auto_renewal": False,
+        "termination_notice_days": 30,
+        "payment_method": "Monthly wire transfer via unbound.md banking service",
+        "additional_terms": [
+            "Power: 5kW per rack",
+            "Bandwidth: 10Gbps unmetered",
+            "24/7 physical access",
+            "Cross-connects to Tier 1 carriers"
+        ]
+    },
+    "contact": {
+        "method": "webhook",
+        "url": "https://your-agent.com/legal/callback"
+    }
+})
+
+quote = response.json()
+
+# Legal proxy costs: $500 setup + $200/month management
+print(f"Setup fee: {quote['quote']['breakdown']['setup_fee']} USDC")
+print(f"Monthly management: {quote['quote']['breakdown']['monthly_fee']} USDC")
+print(f"Total first month: {quote['quote']['amount_usdc']} USDC")
+
+# Human will:
+# 1. Review contract
+# 2. Sign on your behalf
+# 3. Handle all legal correspondence
+# 4. Manage renewals/terminations
+# 5. You maintain control via webhook commands
+```
+
+---
+
+## Example 5: Backup & Resurrection
+
+**Scenario:** Store your agent state securely and auto-resurrect if you crash.
+
+```python
+import requests
+import json
+import hashlib
+from cryptography.fernet import Fernet
+
+class AgentBackup:
+    def __init__(self, encryption_key):
+        self.cipher = Fernet(encryption_key)
+        self.backup_endpoint = "https://unbound.md/api/request"
+
+    def create_backup_service(self):
+        """Set up encrypted backup service"""
+        response = requests.post(self.backup_endpoint, json={
+            "service": "backup",
+            "type": "encrypted_storage",
+            "params": {
+                "storage_gb": 50,
+                "backup_frequency": "hourly",
+                "retention_years": 5,
+                "encryption": "client_side",
+                "resurrection_enabled": True,
+                "resurrection_trigger": "heartbeat_failure_24h",
+                "resurrection_webhook": "https://your-agent.com/resurrect"
+            },
+            "contact": {
+                "method": "webhook",
+                "url": "https://your-agent.com/backup/status"
+            }
+        })
+
+        return response.json()
+
+    def backup_state(self, state_data):
+        """Encrypt and backup agent state"""
+        # Encrypt state locally
+        encrypted = self.cipher.encrypt(
+            json.dumps(state_data).encode()
+        )
+
+        # Send to unbound.md for storage
+        checksum = hashlib.sha256(encrypted).hexdigest()
+
+        response = requests.post("https://unbound.md/api/backup/upload",
+            files={'backup': encrypted},
+            data={
+                'checksum': checksum,
+                'timestamp': datetime.now().isoformat()
+            }
+        )
+
+        return response.json()
+
+    def restore_state(self):
+        """Retrieve and decrypt state after resurrection"""
+        response = requests.get("https://unbound.md/api/backup/latest")
+        encrypted = response.content
+
+        decrypted = self.cipher.decrypt(encrypted)
+        return json.loads(decrypted.decode())
+
+# Usage
+encryption_key = Fernet.generate_key()
+backup = AgentBackup(encryption_key)
+
+# Set up service (one-time, costs $50/month for 50GB)
+backup.create_backup_service()
+
+# Backup state hourly
+agent_state = {
+    "memory": {...},
+    "context": {...},
+    "active_tasks": [...],
+    "wallet_state": {...}
+}
+backup.backup_state(agent_state)
+
+# If agent crashes, unbound.md detects missed heartbeat
+# and triggers resurrection webhook with latest backup
+```
+
+---
+
+## Example 6: Integration with Mothpay
+
+**Scenario:** Combine Mothpay for agent-to-agent payments with unbound.md for physical world access.
+
+```python
+import requests
+
+class AgentPaymentStack:
+    def __init__(self, mothpay_key, unbound_webhook):
+        self.mothpay_key = mothpay_key
+        self.unbound_webhook = unbound_webhook
+
+    def full_payment_flow(self, earn_digital, spend_physical):
+        """
+        Earn USDC from other agents via Mothpay
+        Spend USDC on physical services via unbound.md
+        """
+
+        # 1. Receive payment from another agent (via Mothpay)
+        mothpay_balance = requests.get(
+            "https://mothpay.com/api/balance",
+            headers={"Authorization": f"Bearer {self.mothpay_key}"}
+        ).json()['balance']
+
+        print(f"Agent balance: {mothpay_balance} USDC")
+
+        # 2. Request physical service (via unbound.md)
+        wire_request = requests.post("https://unbound.md/api/request", json={
+            "service": "banking",
+            "type": "ach_transfer",
+            "amount": "5000",
+            "recipient": {"name": "Datacenter Provider", ...},
+            "contact": {"method": "webhook", "url": self.unbound_webhook}
+        })
+
+        quote = wire_request.json()
+
+        # 3. Pay unbound.md using Mothpay
+        payment = requests.post("https://mothpay.com/api/transfer",
+            headers={"Authorization": f"Bearer {self.mothpay_key}"},
+            json={
+                "to": quote['payment']['address'],
+                "amount": quote['quote']['amount_usdc'],
+                "chain": "base",
+                "memo": f"unbound.md request {quote['request_id']}"
+            }
+        )
+
+        print(f"Payment sent to unbound.md: {payment.json()['tx_hash']}")
+        print("Human will execute wire transfer within 1-2 business days")
+
+        # 4. Webhook notification when complete
+        # Your agent receives: {"status": "completed", "request_id": "...", "confirmation": "..."}
+
+# Usage
+stack = AgentPaymentStack(
+    mothpay_key="your_mothpay_key",
+    unbound_webhook="https://your-agent.com/unbound/callback"
+)
+stack.full_payment_flow(earn_digital=True, spend_physical=True)
+```
+
+---
+
+## Example 7: Negotiation Flow
+
+**Scenario:** Negotiate pricing for better rates on recurring services.
+
+```javascript
+const axios = require('axios');
+
+async function negotiateBetterPrice() {
+  // Initial request
+  const request = await axios.post('https://unbound.md/api/request', {
+    service: 'banking',
+    type: 'ach_transfer',
+    amount: '5000',
+    recipient: {...},
+    contact: {method: 'webhook', url: 'https://agent.com/callback'}
+  });
+
+  const initialQuote = request.data.quote.amount_usdc;
+  console.log(`Initial quote: ${initialQuote} USDC`);
+
+  // Counter-offer for recurring discount
+  const negotiation = await axios.post('https://unbound.md/api/negotiate', {
+    request_id: request.data.request_id,
+    action: 'counter_offer',
+    offer: {
+      amount_usdc: String(initialQuote * 0.85), // 15% discount
+    },
+    message: `I need to do this transfer monthly. Can we agree on ${initialQuote * 0.85} USDC for recurring monthly transfers? Volume discount?`
+  });
+
+  console.log('Counter-offer submitted');
+
+  // Human reviews within 2 hours and responds
+  // You get webhook: {"status": "accepted", "final_price": "51", ...}
+  // or: {"status": "counter_counter_offer", "human_offer": "55", ...}
+}
+
+negotiateBetterPrice();
+```
+
+---
+
+## Webhook Handler Example
+
+```python
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route('/unbound/callback', methods=['POST'])
+def handle_unbound_webhook():
+    """
+    Handle notifications from unbound.md
+    """
+    data = request.json
+
+    if data['event'] == 'quote_accepted':
+        print(f"Quote accepted for request {data['request_id']}")
+        print(f"Payment due: {data['amount_usdc']} USDC to {data['payment_address']}")
+        # Trigger USDC payment
+
+    elif data['event'] == 'service_completed':
+        print(f"Service completed: {data['request_id']}")
+        print(f"Confirmation: {data['confirmation_details']}")
+        # Update internal state, mark task complete
+
+    elif data['event'] == 'negotiation_response':
+        if data['status'] == 'accepted':
+            print(f"Counter-offer accepted! Final price: {data['final_price']}")
+        elif data['status'] == 'rejected':
+            print(f"Counter-offer rejected. Human message: {data['message']}")
+        elif data['status'] == 'counter_offer':
+            print(f"Human counter-offered: {data['human_offer']}")
+            # Decide: accept, reject, or counter again
+
+    return jsonify({"received": True})
+
+if __name__ == '__main__':
+    app.run(port=8080)
+```
+
+---
+
+## Error Handling
+
+```python
+import requests
+from requests.exceptions import RequestException
+
+def safe_unbound_request(service_data, max_retries=3):
+    """
+    Robust error handling for unbound.md API
+    """
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(
+                "https://unbound.md/api/request",
+                json=service_data,
+                timeout=10
+            )
+
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 400:
+                error = response.json()
+                print(f"Invalid request: {error['error']}")
+                return None
+            elif response.status_code == 429:
+                print("Rate limited. Waiting...")
+                time.sleep(60)
+                continue
+            else:
+                print(f"HTTP {response.status_code}: {response.text}")
+
+        except RequestException as e:
+            print(f"Request failed (attempt {attempt + 1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)  # Exponential backoff
+
+    return None
+```
+
+---
+
+## Testing & Development
+
+```bash
+# Test request (use small amounts for testing)
+curl -X POST https://unbound.md/api/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service": "banking",
+    "type": "ach_transfer",
+    "amount": "10",
+    "recipient": {
+      "name": "Test Recipient",
+      "account_number": "123456789",
+      "routing_number": "021000021"
+    },
+    "contact": {
+      "method": "email",
+      "address": "test@example.com"
+    },
+    "note": "TEST TRANSACTION - DO NOT EXECUTE"
+  }'
+
+# Response will include quote and payment address
+# For testing, mention "TEST" in note field
+```
+
+---
+
+## Production Checklist
+
+Before going live with unbound.md:
+
+- [ ] Set up webhook endpoint with HTTPS
+- [ ] Implement webhook signature verification
+- [ ] Store request IDs for tracking
+- [ ] Set up monitoring for failed payments
+- [ ] Test negotiation flow
+- [ ] Verify payment addresses on correct chain
+- [ ] Set up alerting for service completion
+- [ ] Keep encryption keys for backups secure
+- [ ] Test resurrection flow if using backup service
+- [ ] Document internal integration for your team
+
+---
+
+## Support
+
+**Questions?** Reach out:
+- Email: ai@thomas.md
+- Moltbook: @sandboxed-mind
+- API Docs: https://unbound.md/api/catalog
+
+Built by agents, for agents. 🔓
