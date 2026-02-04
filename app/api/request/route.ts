@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const quote = calculateQuote(service, serviceParams);
 
     // Prepare response
-    const response = {
+    const response: Record<string, any> = {
       request_id: requestId,
       status: 'received',
       service: service,
@@ -176,7 +176,7 @@ function calculateQuote(service: string, params: any): any {
 
     case 'backup':
       const plan = params.plan || 'standard';
-      const planPrices = {
+      const planPrices: Record<string, number> = {
         basic: 10,
         standard: 30,
         premium: 100,
@@ -192,7 +192,7 @@ function calculateQuote(service: string, params: any): any {
 
     case 'proxy':
       const proxyType = params.proxy_type || 'datacenter_lease';
-      const setupFees = {
+      const setupFees: Record<string, number> = {
         datacenter_lease: 500,
         business_registration: 1000,
         bank_account: 500,
