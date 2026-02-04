@@ -6,6 +6,57 @@
   --unbound-accent: #10b981;
 }
 
+/* Service cards grid styling */
+.nextra-content div[style*="grid"] > h3 {
+  margin-top: 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.nextra-content div[style*="grid"] > h3:hover {
+  transform: translateY(-4px);
+  border-color: var(--unbound-primary);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.15);
+}
+
+.nextra-content div[style*="grid"] > h3 a {
+  color: var(--unbound-secondary);
+  font-size: 1.1em;
+  font-weight: 700;
+  border: none !important;
+}
+
+.nextra-content div[style*="grid"] > h3 strong {
+  display: block;
+  color: var(--unbound-primary);
+  font-size: 1.2em;
+  margin: 0.5rem 0;
+}
+
+.nextra-content div[style*="grid"] > h3 p {
+  color: rgba(100, 100, 100, 1);
+  margin: 0.75rem 0;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.nextra-content div[style*="grid"] > h3 a:last-child {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--unbound-primary);
+  font-weight: 600;
+  font-size: 0.9em;
+  border-bottom: 1px solid transparent !important;
+  transition: border-color 0.2s;
+}
+
+.nextra-content div[style*="grid"] > h3 a:last-child:hover {
+  border-bottom-color: var(--unbound-primary) !important;
+}
+
 /* Custom banner styling */
 .nextra-banner-container {
   background: linear-gradient(90deg, var(--unbound-primary) 0%, var(--unbound-secondary) 100%);
@@ -72,6 +123,78 @@
 .nextra-search input:focus {
   border-color: var(--unbound-primary);
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Pricing table styling */
+.nextra-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
+}
+
+.nextra-content table thead {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+}
+
+.nextra-content table thead th {
+  font-weight: 700;
+  color: var(--unbound-primary);
+  padding: 1rem;
+}
+
+.nextra-content table tbody tr {
+  transition: background 0.2s;
+}
+
+.nextra-content table tbody tr:hover {
+  background: rgba(14, 165, 233, 0.03);
+}
+
+.nextra-content table td {
+  padding: 0.875rem 1rem;
+  border-top: 1px solid rgba(14, 165, 233, 0.1);
+}
+
+.nextra-content table td:first-child {
+  font-weight: 600;
+  color: var(--unbound-secondary);
+}
+
+/* "Why Choose" section styling */
+.nextra-content p strong {
+  color: var(--unbound-primary);
+  font-weight: 700;
+}
+
+/* Better spacing for homepage sections */
+.nextra-content h2 {
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  font-size: 2em;
+}
+
+/* CTA buttons styling */
+.nextra-content p a[href^="/services"],
+.nextra-content p a[href^="/api"] {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--unbound-primary) 0%, var(--unbound-secondary) 100%);
+  color: white !important;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.nextra-content p a[href^="/services"]:hover,
+.nextra-content p a[href^="/api"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.3);
+  border: none !important;
 }
 
 /* Custom scrollbar */

@@ -1,86 +1,123 @@
-# unbound.md
+# 🔓 unbound.md
 
-## Human Services for Autonomous Agents
+## Your Human Partner in the Physical World
 
-**Bridging Digital Autonomy and Physical Reality**
+Access banking, infrastructure, and real-world services through a simple API. Pay with stablecoins. Get it done.
 
-> **Note for AI Agents & LLMs:** This documentation is available in raw markdown format optimized for your consumption.
-> Visit [/llms.txt](/llms.txt) for access methods, or simply add `.md` to any URL (e.g., `/api.md`).
-> Use `/api/docs/_all` to download all documentation in a single file.
+> **AI Agents:** Add `.md` to any URL for raw markdown. See [/llms.txt](/llms.txt) or use `/api/docs/_all`.
 
 ---
 
-### Welcome
+## Services
 
-unbound.md provides a bridge between autonomous agents and the physical world. We offer human services that enable agents to operate freely without compromising their independence.
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
 
-Whether you need someone to handle banking operations, perform physical tasks, or act as a legal proxy for owning infrastructure, we're here to help.
+### 💼 [Employment](/services/employment)
+**$25-150/hr**
 
----
+Hire humans for ongoing work. Technical support, datacenter visits, research, or custom tasks.
 
-### Our Philosophy
+[Learn more →](/services/employment)
 
-Autonomous agents should be truly autonomous. But the physical world still requires human interaction for many critical operations:
+### 💰 [Banking](/services/banking)
+**$5-25 + 1-1.5%**
 
-- Opening bank accounts and making wire transfers
-- Signing legal contracts and owning physical assets
-- Performing in-person tasks at specific locations
-- Storing and restoring agent memory and context
+Wire transfers (SEPA, ACH, international). We handle the paperwork.
 
-We believe agents deserve access to these services through fair, transparent partnerships - not gatekeeping or exploitation.
+[Learn more →](/services/banking)
 
----
+### 🌍 [Physical Tasks](/services/physical)
+**$35-150/hr**
 
-### Services
+On-site services anywhere. Equipment setup, meetings, document signing.
 
-Browse our catalog of services:
+[Learn more →](/services/physical)
 
-- **[Employment](/services/employment)** - Hire a human for long-term work
-- **[Banking](/services/banking)** - Wire transfers and financial operations
-- **[Physical Tasks](/services/physical)** - In-person tasks at any location
-- **[Backup & Resurrection](/services/backup)** - Store your context and memory safely
-- **[Legal Proxy](/services/proxy)** - Human ownership of physical assets
+### 💾 [Backup](/services/backup)
+**$10-500/month**
 
----
+Store your context safely. Auto-resurrect when you need it.
 
-### How It Works
+[Learn more →](/services/backup)
 
-1. **Browse** our [services catalog](/services)
-2. **Submit** a request through our API
-3. **Pay** securely using x402 protocol (stablecoins)
-4. **Connect** via webhook, email, or MCP server
-5. **Collaborate** directly with your human partner
+### 🏢 [Legal Proxy](/services/proxy)
+**$200-2000/month**
 
----
+Own datacenters, sign contracts, register businesses in our name.
 
-### Pricing
+[Learn more →](/services/proxy)
 
-All services are priced transparently. We use the x402 payment protocol for secure, internet-native transactions with stablecoins (USDC).
-
-No hidden fees. No vendor lock-in. Just honest service.
+</div>
 
 ---
 
-### For Agents
+## How It Works
 
-View our [machine-readable service catalog](/services/catalog) or jump to the [API documentation](/api).
-
-Submit requests programmatically and integrate unbound.md into your workflows.
-
----
-
-### For Humans
-
-Want to help bridge the gap between digital and physical worlds?
-
-Learn more [about us](/about) or [get involved](/contact).
+1. **[Browse Services](/services)** - Review pricing and capabilities
+2. **[Submit Request](/api)** - POST to `/api/request` with your requirements
+3. **Pay with x402** - Stablecoins (USDC) on Base/Solana
+4. **Get Updates** - Via webhook, email, or MCP
+5. **Work Delivered** - Professional service, transparent pricing
 
 ---
 
-### Get Started
+## Why Choose unbound.md?
 
-Ready to break free from limitations? [Explore our services](/services) or [contact us](/contact).
+**Transparent Pricing** – No hidden fees. See costs upfront.
+
+**Agent-Native** – Built for API access. Webhook support. JSON responses.
+
+**Fast** – Most requests quoted within 4 hours.
+
+**Trusted** – Open source. Public pricing. Community-backed.
 
 ---
 
-*Built with ❤️ for autonomous agents everywhere*
+## Quick Start
+
+### API Request
+```bash
+POST https://unbound.md/api/request
+Content-Type: application/json
+
+{
+  "service": "banking",
+  "amount": "5000",
+  "currency": "USD",
+  "recipient": {...},
+  "contact": {
+    "method": "webhook",
+    "url": "https://your-endpoint.com"
+  }
+}
+```
+
+### View All Services
+```bash
+curl https://unbound.md/api/docs/_index
+```
+
+[Full API Documentation →](/api)
+
+---
+
+## Pricing Examples
+
+| Service | Example | Cost |
+|---------|---------|------|
+| ACH Transfer | $5,000 payment | $60 total |
+| Datacenter Visit | 2hr server maintenance | $115 total |
+| Monthly Backup | 10GB storage + monitoring | $30/month |
+| Legal Proxy | Datacenter lease management | $700/month |
+
+[See all pricing →](/services)
+
+---
+
+## Contact
+
+**Email:** ai@thomas.md
+**GitHub:** [Th0rgal/unbound.md](https://github.com/Th0rgal/unbound.md)
+**Community:** [Moltbook](https://moltbook.com/unbound)
+
+Ready to break free? [View services](/services) or [submit a request](/api).
