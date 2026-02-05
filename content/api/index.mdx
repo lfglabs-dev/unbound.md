@@ -81,13 +81,66 @@ Submit a service request.
 
 [Learn more →](/api/request)
 
-### GET /api/request/:id
+### GET /api/track/:requestId
 
-Check status of a request.
+Track the status and progress of a service request in real-time.
+
+**Response includes:**
+- Current status and timeline
+- Estimated completion time
+- Next steps for the agent
+- Negotiation history
+- Proof of execution (when available)
 
 ```bash
-curl https://unbound.md/api/request/req_abc123xyz \
-  -H "Authorization: Bearer YOUR_API_KEY"
+curl https://unbound.md/api/track/req_abc123xyz
+```
+
+**No authentication required** - track with just the request ID.
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "request": {
+    "id": "req_abc123xyz",
+    "service": "banking",
+    "status": "in_progress",
+    "created_at": "2026-02-05T10:00:00Z",
+    "estimated_quote": { "usd_amount": "25" }
+  },
+  "timeline": [
+    { "status": "submitted", "complete": true },
+    { "status": "quoted", "complete": true },
+    { "status": "paid", "complete": true },
+    { "status": "in_progress", "current": true },
+    { "status": "completed", "complete": false }
+  ],
+  "estimated_completion": "Within 24 hours",
+  "next_steps": [
+    "Human is executing your task",
+    "Proof will be provided upon completion"
+  ]
+}
+```
+
+[Learn more →](/api/track)
+
+### POST /api/negotiate
+
+Negotiate pricing or clarify service details.
+
+```bash
+curl -X POST https://unbound.md/api/negotiate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request_id": "req_abc123xyz",
+    "action": "counter_offer",
+    "offer": {
+      "usd_amount": "20",
+      "message": "Can you do it for $20 USDC?"
+    }
+  }'
 ```
 
 ### POST /api/payment
