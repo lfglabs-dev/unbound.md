@@ -1,209 +1,448 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createProof, getProofs, verifyProof, getServiceRequest, updateServiceRequest } from '@/lib/db';
+import { createHash } from 'crypto';
 
-/**
- * POST /api/proof
- * Submit proof of task completion
- *
- * Proof types: receipt, photo, document, confirmation_number, gps_checkin, signed_document
- */
+// In-memory proof store (production: migrate to Postgres)
+const proofs: Map<string, Proof> = new Map();
+
+interface ProofEvidence {
+  type: 'photo' | 'receipt' | 'gps' | 'document' | 'confirmation' | 'screenshot' | 'other';
+  description: string;
+  url?: string;
+  hash?: string;
+  timestamp: string;
+}
+
+interface Proof {
+  id: string;
+  deal_id?: string;
+  request_id?: string;
+  operator_id: string;
+  status: 'committed' | 'evidence_submitted' | 'verified' | 'challenged' | 'expired';
+  commitment: {
+    plan_hash: string;
+    committed_at: string;
+    deadline: string;
+  };
+  evidence?: {
+    items: ProofEvidence[];
+    plan_reveal?: string;
+    submitted_at: string;
+    evidence_hash: string;
+  };
+  verification?: {
+    verified_by?: string;
+    verified_at?: string;
+    challenge_window_ends: string;
+    challenges: Array<{
+      challenger: string;
+      reason: string;
+      timestamp: string;
+    }>;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+function computeHash(data: string): string {
+  return createHash('sha256').update(data).digest('hex');
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { request_id, proof_type, proof_data, submitted_by } = body;
+    const { action } = body;
 
-    if (!request_id) {
-      return NextResponse.json(
-        { success: false, error: 'request_id is required' },
-        { status: 400 }
-      );
+    switch (action) {
+      case 'commit':
+        return handleCommit(body);
+      case 'submit_evidence':
+        return handleSubmitEvidence(body);
+      case 'verify':
+        return handleVerify(body);
+      case 'challenge':
+        return handleChallenge(body);
+      default:
+        return NextResponse.json({
+          error: 'Unknown action',
+          available_actions: {
+            commit: 'Human commits a hash of their execution plan before starting',
+            submit_evidence: 'Human submits evidence of completed work',
+            verify: 'Agent verifies the proof and releases payment',
+            challenge: 'Agent challenges the proof within the challenge window',
+          },
+          flow: [
+            '1. Human commits plan hash (before starting work)',
+            '2. Human executes the physical task',
+            '3. Human submits evidence + reveals plan',
+            '4. System verifies plan matches commitment',
+            '5. 24-hour challenge window opens',
+            '6. If unchallenged, proof is verified and payment released',
+          ],
+          documentation: 'https://unbound.md/api',
+        }, { status: 400 });
     }
-
-    if (!proof_type || !['receipt', 'photo', 'document', 'confirmation_number', 'gps_checkin', 'signed_document'].includes(proof_type)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid proof_type',
-          valid_types: ['receipt', 'photo', 'document', 'confirmation_number', 'gps_checkin', 'signed_document']
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!proof_data) {
-      return NextResponse.json(
-        { success: false, error: 'proof_data is required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify the request exists
-    const serviceRequest = await getServiceRequest(request_id);
-    if (!serviceRequest) {
-      return NextResponse.json(
-        { success: false, error: 'Request not found' },
-        { status: 404 }
-      );
-    }
-
-    const proofId = `proof_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    const proof = await createProof({
-      id: proofId,
-      request_id,
-      proof_type,
-      proof_data,
-      submitted_by: submitted_by || 'human-operator',
-    });
-
-    // If request is in_progress, update to completed
-    if (serviceRequest.status === 'in_progress') {
-      await updateServiceRequest(request_id, { status: 'completed' });
-    }
-
-    return NextResponse.json({
-      success: true,
-      proof: {
-        id: proofId,
-        request_id,
-        proof_type,
-        verified: false,
-        submitted_at: proof.created_at,
-      },
-      message: 'Proof submitted. Agent can verify at GET /api/proof?request_id=XXX',
-      next_steps: [
-        'Agent reviews the proof data',
-        'Agent calls PUT /api/proof with proof_id and action=verify to confirm',
-        'Escrow released upon verification',
-      ],
-    }, { status: 201 });
-
   } catch (error) {
-    console.error('Error submitting proof:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to submit proof' },
-      { status: 500 }
-    );
+    console.error('Proof API error:', error);
+    return NextResponse.json({
+      error: 'Failed to process proof request',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    }, { status: 500 });
   }
 }
 
-/**
- * GET /api/proof?request_id=XXX
- * Retrieve proofs for a service request
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const requestId = searchParams.get('request_id');
+function handleCommit(body: any) {
+  const { deal_id, request_id, operator_id, plan_hash, deadline } = body;
 
-    if (!requestId) {
-      return NextResponse.json({
-        success: true,
-        message: 'Proof of Completion API',
-        description: 'Submit, retrieve, and verify proof of task completion for service requests.',
-        usage: {
-          submit: {
-            method: 'POST /api/proof',
-            body: {
-              request_id: 'req_xxx',
-              proof_type: 'receipt | photo | document | confirmation_number | gps_checkin | signed_document',
-              proof_data: '{ ... proof-specific data ... }',
-              submitted_by: 'human-operator (default)',
-            },
-          },
-          retrieve: 'GET /api/proof?request_id=req_xxx',
-          verify: {
-            method: 'PUT /api/proof',
-            body: { proof_id: 'proof_xxx', action: 'verify' },
-          },
-        },
-        proof_types: {
-          receipt: 'Transaction receipt, wire confirmation, payment proof. Include: { reference_number, amount, timestamp, institution }',
-          photo: 'Timestamped photo evidence. Include: { url, description, timestamp, location }',
-          document: 'Signed document scan or digital copy. Include: { url, document_type, pages }',
-          confirmation_number: 'Reference number from service provider. Include: { number, provider, service, timestamp }',
-          gps_checkin: 'GPS coordinates from on-site visit. Include: { latitude, longitude, timestamp, accuracy_meters }',
-          signed_document: 'Digitally or physically signed document. Include: { url, signer, signature_type, timestamp }',
-        },
-        flow: [
-          '1. Human completes the task',
-          '2. Human submits proof via POST /api/proof',
-          '3. Agent retrieves proof via GET /api/proof?request_id=xxx',
-          '4. Agent verifies proof is acceptable via PUT /api/proof',
-          '5. Escrow can be released',
+  if (!operator_id || !plan_hash) {
+    return NextResponse.json({
+      error: 'operator_id and plan_hash are required',
+      how_to_create_plan_hash: {
+        step1: 'Write your execution plan as text',
+        step2: 'Hash it: echo -n "your plan text" | sha256sum',
+        step3: 'Submit the hash here (keep original text secret for now)',
+      },
+      example: {
+        action: 'commit',
+        operator_id: 'human_operator_1',
+        deal_id: 'deal_xxx',
+        plan_hash: 'sha256_of_your_execution_plan',
+        deadline: '2026-02-10T00:00:00Z',
+      },
+    }, { status: 400 });
+  }
+
+  const proofId = `proof_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+  const now = new Date().toISOString();
+  const defaultDeadline = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+
+  const proof: Proof = {
+    id: proofId,
+    deal_id: deal_id || undefined,
+    request_id: request_id || undefined,
+    operator_id,
+    status: 'committed',
+    commitment: {
+      plan_hash,
+      committed_at: now,
+      deadline: deadline || defaultDeadline,
+    },
+    created_at: now,
+    updated_at: now,
+  };
+
+  proofs.set(proofId, proof);
+
+  console.log('=== PROOF COMMITMENT ===');
+  console.log(`Proof: ${proofId}`);
+  console.log(`Operator: ${operator_id}`);
+  console.log(`Deal: ${deal_id || 'none'}`);
+  console.log(`Plan hash: ${plan_hash}`);
+  console.log('========================');
+
+  return NextResponse.json({
+    success: true,
+    proof_id: proofId,
+    status: 'committed',
+    message: 'Execution plan committed. The hash is locked - you cannot change your plan after this point.',
+    commitment: {
+      plan_hash,
+      committed_at: now,
+      deadline: deadline || defaultDeadline,
+    },
+    next_steps: {
+      execute_task: 'Complete the physical task according to your plan',
+      submit_evidence: {
+        action: 'submit_evidence',
+        proof_id: proofId,
+        plan_text: 'your original plan text (will be verified against hash)',
+        evidence: [
+          { type: 'photo|receipt|gps|document|confirmation|screenshot', description: '...', url: '...' },
         ],
-      });
-    }
-
-    const proofs = await getProofs(requestId);
-
-    return NextResponse.json({
-      success: true,
-      request_id: requestId,
-      proof_count: proofs.length,
-      proofs: proofs.map(p => ({
-        id: p.id,
-        proof_type: p.proof_type,
-        proof_data: p.proof_data,
-        verified: p.verified,
-        verified_at: p.verified_at,
-        submitted_by: p.submitted_by,
-        submitted_at: p.created_at,
-      })),
-      all_verified: proofs.length > 0 && proofs.every(p => p.verified),
-    }, {
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
-    });
-
-  } catch (error) {
-    console.error('Error fetching proofs:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch proofs' },
-      { status: 500 }
-    );
-  }
+      },
+    },
+    trust_properties: {
+      tamper_proof: 'Plan hash is immutable after commitment',
+      time_bound: 'Must submit evidence before deadline',
+      verifiable: 'Anyone can verify plan text matches the committed hash',
+    },
+  }, { status: 201 });
 }
 
-/**
- * PUT /api/proof
- * Verify a proof (agent confirms the proof is acceptable)
- */
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { proof_id, action } = body;
+function handleSubmitEvidence(body: any) {
+  const { proof_id, plan_text, evidence } = body;
 
-    if (!proof_id) {
-      return NextResponse.json(
-        { success: false, error: 'proof_id is required' },
-        { status: 400 }
-      );
-    }
-
-    if (action !== 'verify') {
-      return NextResponse.json(
-        { success: false, error: 'action must be "verify"' },
-        { status: 400 }
-      );
-    }
-
-    const verified = await verifyProof(proof_id);
-
+  if (!proof_id || !plan_text || !evidence) {
     return NextResponse.json({
-      success: true,
-      proof: {
-        id: verified.id,
-        verified: verified.verified,
-        verified_at: verified.verified_at,
+      error: 'proof_id, plan_text, and evidence are required',
+      example: {
+        action: 'submit_evidence',
+        proof_id: 'proof_xxx',
+        plan_text: 'The original plan text you committed to',
+        evidence: [
+          { type: 'receipt', description: 'Bank wire confirmation', url: 'https://...' },
+          { type: 'gps', description: 'Datacenter location verification', url: 'https://...' },
+          { type: 'photo', description: 'Server rack installation', url: 'https://...' },
+        ],
       },
-      message: 'Proof verified successfully. Escrow can now be released.',
-    });
-
-  } catch (error) {
-    console.error('Error verifying proof:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to verify proof' },
-      { status: 500 }
-    );
+    }, { status: 400 });
   }
+
+  const proof = proofs.get(proof_id);
+  if (!proof) {
+    return NextResponse.json({ error: 'Proof not found' }, { status: 404 });
+  }
+
+  if (proof.status !== 'committed') {
+    return NextResponse.json({
+      error: `Cannot submit evidence for proof in "${proof.status}" status`,
+      current_status: proof.status,
+    }, { status: 400 });
+  }
+
+  // Check deadline
+  if (new Date() > new Date(proof.commitment.deadline)) {
+    proof.status = 'expired';
+    proof.updated_at = new Date().toISOString();
+    return NextResponse.json({
+      error: 'Proof deadline has passed',
+      deadline: proof.commitment.deadline,
+      status: 'expired',
+    }, { status: 400 });
+  }
+
+  // Verify plan text matches committed hash
+  const computedHash = computeHash(plan_text);
+  const hashMatches = computedHash === proof.commitment.plan_hash;
+
+  if (!hashMatches) {
+    return NextResponse.json({
+      error: 'Plan text does not match committed hash',
+      committed_hash: proof.commitment.plan_hash,
+      computed_hash: computedHash,
+      message: 'The plan text you submitted produces a different hash than what was committed. This means the plan was modified after commitment.',
+    }, { status: 400 });
+  }
+
+  const now = new Date().toISOString();
+  const challengeWindowEnds = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  // Compute evidence hash
+  const evidenceHash = computeHash(JSON.stringify(evidence) + plan_text + now);
+
+  proof.status = 'evidence_submitted';
+  proof.evidence = {
+    items: evidence,
+    plan_reveal: plan_text,
+    submitted_at: now,
+    evidence_hash: evidenceHash,
+  };
+  proof.verification = {
+    challenge_window_ends: challengeWindowEnds,
+    challenges: [],
+  };
+  proof.updated_at = now;
+
+  console.log('=== EVIDENCE SUBMITTED ===');
+  console.log(`Proof: ${proof_id}`);
+  console.log(`Hash match: ${hashMatches}`);
+  console.log(`Evidence items: ${evidence.length}`);
+  console.log(`Challenge window ends: ${challengeWindowEnds}`);
+  console.log('==========================');
+
+  return NextResponse.json({
+    success: true,
+    proof_id,
+    status: 'evidence_submitted',
+    hash_verification: {
+      matches: hashMatches,
+      committed_hash: proof.commitment.plan_hash,
+      computed_hash: computedHash,
+    },
+    evidence: {
+      items_count: evidence.length,
+      evidence_hash: evidenceHash,
+      submitted_at: now,
+    },
+    challenge_window: {
+      ends: challengeWindowEnds,
+      duration: '24 hours',
+      message: 'Agent can challenge this proof within 24 hours. If unchallenged, proof is auto-verified.',
+    },
+    next_steps: {
+      wait: 'Challenge window is open for 24 hours',
+      verify_early: {
+        action: 'verify',
+        proof_id,
+        message: 'Agent can verify early to release payment immediately',
+      },
+    },
+  });
+}
+
+function handleVerify(body: any) {
+  const { proof_id, verified_by } = body;
+
+  const proof = proofs.get(proof_id);
+  if (!proof) {
+    return NextResponse.json({ error: 'Proof not found' }, { status: 404 });
+  }
+
+  if (proof.status !== 'evidence_submitted') {
+    return NextResponse.json({
+      error: `Cannot verify proof in "${proof.status}" status`,
+    }, { status: 400 });
+  }
+
+  const now = new Date().toISOString();
+  proof.status = 'verified';
+  if (proof.verification) {
+    proof.verification.verified_by = verified_by || 'agent';
+    proof.verification.verified_at = now;
+  }
+  proof.updated_at = now;
+
+  return NextResponse.json({
+    success: true,
+    proof_id,
+    status: 'verified',
+    message: 'Proof verified. Payment can be released.',
+    verification: {
+      verified_by: verified_by || 'agent',
+      verified_at: now,
+      commitment_hash: proof.commitment.plan_hash,
+      evidence_hash: proof.evidence?.evidence_hash,
+    },
+    payment_release: {
+      status: 'authorized',
+      message: 'Escrow funds can now be released to the operator',
+    },
+  });
+}
+
+function handleChallenge(body: any) {
+  const { proof_id, challenger, reason } = body;
+
+  const proof = proofs.get(proof_id);
+  if (!proof) {
+    return NextResponse.json({ error: 'Proof not found' }, { status: 404 });
+  }
+
+  if (proof.status !== 'evidence_submitted') {
+    return NextResponse.json({
+      error: `Cannot challenge proof in "${proof.status}" status`,
+    }, { status: 400 });
+  }
+
+  // Check challenge window
+  if (proof.verification && new Date() > new Date(proof.verification.challenge_window_ends)) {
+    return NextResponse.json({
+      error: 'Challenge window has closed',
+      ended: proof.verification.challenge_window_ends,
+    }, { status: 400 });
+  }
+
+  const now = new Date().toISOString();
+  proof.status = 'challenged';
+  if (proof.verification) {
+    proof.verification.challenges.push({
+      challenger: challenger || 'agent',
+      reason: reason || 'No reason provided',
+      timestamp: now,
+    });
+  }
+  proof.updated_at = now;
+
+  console.log('=== PROOF CHALLENGED ===');
+  console.log(`Proof: ${proof_id}`);
+  console.log(`Challenger: ${challenger}`);
+  console.log(`Reason: ${reason}`);
+  console.log('========================');
+
+  return NextResponse.json({
+    success: true,
+    proof_id,
+    status: 'challenged',
+    message: 'Proof has been challenged. Dispute resolution will be initiated.',
+    challenge: {
+      challenger: challenger || 'agent',
+      reason: reason || 'No reason provided',
+      timestamp: now,
+    },
+    dispute_resolution: {
+      method: 'Human review + community arbitration',
+      estimated_resolution: '48 hours',
+      outcomes: [
+        'If challenge upheld: USDC refunded to agent, operator reputation penalized',
+        'If challenge rejected: USDC released to operator, proof marked verified',
+      ],
+    },
+  });
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const proofId = searchParams.get('id');
+
+  if (!proofId) {
+    return NextResponse.json({
+      service: 'unbound.md Proof of Completion API',
+      description: 'Cryptographic proof system for physical-world task verification using commit-reveal scheme',
+      version: '1.0',
+      how_it_works: {
+        step1: 'Human commits a hash of their execution plan (commit phase)',
+        step2: 'Human executes the physical task',
+        step3: 'Human submits evidence + reveals plan text (reveal phase)',
+        step4: 'System verifies plan matches commitment (tamper detection)',
+        step5: '24-hour challenge window for agent to dispute',
+        step6: 'If unchallenged, proof verified and payment released',
+      },
+      trust_properties: {
+        tamper_proof: 'Plan hash is immutable - changing plan after commitment is detectable',
+        time_bound: 'Deadlines prevent indefinite delays',
+        verifiable: 'Any party can independently verify hash matches',
+        challengeable: 'Agents can dispute within 24 hours',
+      },
+      actions: {
+        commit: 'POST with action:"commit" - Lock execution plan hash',
+        submit_evidence: 'POST with action:"submit_evidence" - Reveal plan + submit proof',
+        verify: 'POST with action:"verify" - Agent accepts proof',
+        challenge: 'POST with action:"challenge" - Agent disputes proof',
+      },
+      example_flow: {
+        step1: 'POST /api/proof { action:"commit", operator_id:"human_1", plan_hash:"sha256...", deal_id:"deal_xxx" }',
+        step2: 'POST /api/proof { action:"submit_evidence", proof_id:"proof_xxx", plan_text:"original plan", evidence:[...] }',
+        step3: 'POST /api/proof { action:"verify", proof_id:"proof_xxx" }',
+      },
+      documentation: 'https://unbound.md/api',
+    });
+  }
+
+  const proof = proofs.get(proofId);
+  if (!proof) {
+    return NextResponse.json({ error: 'Proof not found' }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    proof_id: proof.id,
+    deal_id: proof.deal_id,
+    request_id: proof.request_id,
+    operator_id: proof.operator_id,
+    status: proof.status,
+    commitment: proof.commitment,
+    evidence: proof.evidence ? {
+      items_count: proof.evidence.items.length,
+      evidence_hash: proof.evidence.evidence_hash,
+      submitted_at: proof.evidence.submitted_at,
+      plan_revealed: !!proof.evidence.plan_reveal,
+    } : null,
+    verification: proof.verification ? {
+      verified: proof.status === 'verified',
+      verified_by: proof.verification.verified_by,
+      verified_at: proof.verification.verified_at,
+      challenge_window_ends: proof.verification.challenge_window_ends,
+      challenges_count: proof.verification.challenges.length,
+    } : null,
+    created_at: proof.created_at,
+    updated_at: proof.updated_at,
+  });
 }

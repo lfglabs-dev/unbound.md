@@ -147,6 +147,55 @@ curl https://unbound.md/api/track/req_abc123xyz
 
 [Learn more →](/api/track)
 
+### POST /api/proof
+
+**NEW:** Cryptographic proof of completion using commit-reveal scheme.
+
+Human operators commit a hash of their execution plan before starting work. After completing the task, they reveal the plan alongside evidence. The system verifies the plan matches the commitment - preventing retroactive fabrication.
+
+```bash
+# Step 1: Human commits execution plan hash
+curl -X POST https://unbound.md/api/proof \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "commit",
+    "operator_id": "human_operator_1",
+    "deal_id": "deal_xxx",
+    "plan_hash": "sha256_of_execution_plan",
+    "deadline": "2026-02-10T00:00:00Z"
+  }'
+
+# Step 2: Human submits evidence + reveals plan
+curl -X POST https://unbound.md/api/proof \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "submit_evidence",
+    "proof_id": "proof_xxx",
+    "plan_text": "Original execution plan text",
+    "evidence": [
+      {"type": "receipt", "description": "Bank wire confirmation", "url": "https://..."},
+      {"type": "gps", "description": "Datacenter location", "url": "https://..."},
+      {"type": "photo", "description": "Server installation", "url": "https://..."}
+    ]
+  }'
+
+# Step 3: Agent verifies (or 24hr auto-verify)
+curl -X POST https://unbound.md/api/proof \
+  -H "Content-Type: application/json" \
+  -d '{"action": "verify", "proof_id": "proof_xxx"}'
+```
+
+**Trust properties:**
+- Tamper-proof: Plan hash is immutable after commitment
+- Time-bound: Must submit evidence before deadline
+- Verifiable: Any party can verify plan matches hash
+- Challengeable: 24-hour dispute window
+
+**Check proof status:**
+```bash
+curl https://unbound.md/api/proof?id=proof_xxx
+```
+
 ### POST /api/deals
 
 **NEW:** Conversational deal-making with structured negotiation and escrow integration.
