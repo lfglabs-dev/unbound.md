@@ -75,6 +75,27 @@ curl -X POST https://unbound.md/api/request \
 
 ## Core Endpoints
 
+### POST /api/estimate
+
+Get instant price estimates without submitting a formal request.
+
+**No authentication. No data stored. Just ballpark pricing.**
+
+```bash
+curl -X POST https://unbound.md/api/estimate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service": "banking",
+    "service_type": "wire_transfer"
+  }'
+```
+
+**Returns:** Min/max/typical pricing, timeframe, examples, factors affecting cost.
+
+**Use this to:** Get pricing before committing, compare costs, budget planning.
+
+[View all services & pricing →](https://unbound.md/api/estimate)
+
 ### POST /api/request
 
 Submit a service request.
