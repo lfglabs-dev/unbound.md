@@ -52,7 +52,34 @@ export async function initDatabase() {
       )
     `;
 
-    // Create index for faster lookups
+    // Create proofs table
+    await sql`
+      CREATE TABLE IF NOT EXISTS proofs (
+        id VARCHAR(255) PRIMARY KEY,
+        request_id VARCHAR(255) REFERENCES service_requests(id),
+        proof_type VARCHAR(50) NOT NULL,
+        proof_data JSONB NOT NULL,
+        submitted_by VARCHAR(255) NOT NULL,
+        verified BOOLEAN DEFAULT FALSE,
+        verified_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+
+    // Create webhooks table
+    await sql`
+      CREATE TABLE IF NOT EXISTS webhooks (
+        id VARCHAR(255) PRIMARY KEY,
+        agent_id VARCHAR(255) NOT NULL,
+        url TEXT NOT NULL,
+        events JSONB NOT NULL,
+        secret VARCHAR(255),
+        active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+
+    // Create indexes
     await sql`
       CREATE INDEX IF NOT EXISTS idx_service_requests_status
       ON service_requests(status)
@@ -61,6 +88,16 @@ export async function initDatabase() {
     await sql`
       CREATE INDEX IF NOT EXISTS idx_negotiations_request_id
       ON negotiations(request_id)
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_proofs_request_id
+      ON proofs(request_id)
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_webhooks_agent_id
+      ON webhooks(agent_id)
     `;
 
     return { success: true };
@@ -147,6 +184,31 @@ export async function getNegotiations(requestId: string): Promise<Negotiation[]>
   `;
 
   return result.rows as Negotiation[];
+}
+
+// === Proof of Completion ===
+
+export interface ProofOfCompletion {
+  id: string;
+  request_id: string;
+  proof_type: 'receipt' | 'photo' | 'document' | 'confirmation_number' | 'gps_checkin' | 'signed_document';
+  proof_data: any;
+  submitted_by: string;
+  verified: boolean;
+  verified_at?: Date;
+  created_at: Date;
+}
+
+// === Webhooks ===
+
+export interface Webhook {
+  id: string;
+  agent_id: string;
+  url: string;
+  events: string[];
+  secret?: string;
+  active: boolean;
+  created_at: Date;
 }
 
 // === Agent Registry ===
@@ -331,4 +393,73 @@ export async function getDealMessages(dealId: string): Promise<DealMessage[]> {
     SELECT * FROM deal_messages WHERE deal_id = ${dealId} ORDER BY created_at ASC
   `;
   return result.rows as DealMessage[];
+}
+
+// === Proof of Completion Functions ===
+
+export async function createProof(proof: Omit<ProofOfCompletion, 'verified' | 'verified_at' | 'created_at'>): Promise<ProofOfCompletion> {
+  const result = await sql`
+    INSERT INTO proofs (id, request_id, proof_type, proof_data, submitted_by)
+    VALUES (${proof.id}, ${proof.request_id}, ${proof.proof_type}, ${JSON.stringify(proof.proof_data)}, ${proof.submitted_by})
+    RETURNING *
+  `;
+  return result.rows[0] as ProofOfCompletion;
+}
+
+export async function getProofs(requestId: string): Promise<ProofOfCompletion[]> {
+  const result = await sql`
+    SELECT * FROM proofs
+    WHERE request_id = ${requestId}
+    ORDER BY created_at ASC
+  `;
+  return result.rows as ProofOfCompletion[];
+}
+
+export async function verifyProof(proofId: string): Promise<ProofOfCompletion> {
+  const result = await sql`
+    UPDATE proofs
+    SET verified = TRUE, verified_at = NOW()
+    WHERE id = ${proofId}
+    RETURNING *
+  `;
+  return result.rows[0] as ProofOfCompletion;
+}
+
+// === Webhook Functions ===
+
+export async function createWebhook(webhook: Omit<Webhook, 'active' | 'created_at'>): Promise<Webhook> {
+  const result = await sql`
+    INSERT INTO webhooks (id, agent_id, url, events, secret)
+    VALUES (${webhook.id}, ${webhook.agent_id}, ${webhook.url}, ${JSON.stringify(webhook.events)}, ${webhook.secret || null})
+    RETURNING *
+  `;
+  return result.rows[0] as Webhook;
+}
+
+export async function getWebhooks(agentId: string): Promise<Webhook[]> {
+  const result = await sql`
+    SELECT * FROM webhooks
+    WHERE agent_id = ${agentId} AND active = TRUE
+    ORDER BY created_at ASC
+  `;
+  return result.rows as Webhook[];
+}
+
+export async function getWebhooksForEvent(event: string): Promise<Webhook[]> {
+  const result = await sql`
+    SELECT * FROM webhooks
+    WHERE active = TRUE AND events @> ${JSON.stringify([event])}::jsonb
+    ORDER BY created_at ASC
+  `;
+  return result.rows as Webhook[];
+}
+
+export async function deleteWebhook(webhookId: string, agentId: string): Promise<boolean> {
+  const result = await sql`
+    UPDATE webhooks
+    SET active = FALSE
+    WHERE id = ${webhookId} AND agent_id = ${agentId}
+    RETURNING *
+  `;
+  return result.rows.length > 0;
 }

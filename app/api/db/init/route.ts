@@ -10,10 +10,12 @@ export async function GET() {
       return NextResponse.json({
         success: true,
         message: 'Database initialized successfully',
-        tables: ['service_requests', 'negotiations', 'agents', 'deals', 'deal_messages'],
+        tables: ['service_requests', 'negotiations', 'proofs', 'webhooks', 'agents', 'deals', 'deal_messages'],
         indexes: [
           'idx_service_requests_status',
           'idx_negotiations_request_id',
+          'idx_proofs_request_id',
+          'idx_webhooks_agent_id',
           'idx_deals_status',
           'idx_deals_proposer',
           'idx_deals_target',

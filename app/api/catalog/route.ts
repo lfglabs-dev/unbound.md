@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const serviceCatalog = {
-  version: '1.0.0',
-  updated_at: '2026-02-04T00:00:00Z',
+  version: '2.0.0',
+  updated_at: '2026-02-05T00:00:00Z',
   services: [
     {
       id: 'employment',
@@ -182,17 +182,21 @@ const serviceCatalog = {
   api_info: {
     base_url: 'https://unbound.md/api',
     endpoints: {
-      catalog: '/api/catalog',
-      estimate: '/api/estimate',
-      submit_request: '/api/request',
-      negotiate: '/api/negotiate',
-      track: '/api/track/:requestId',
-      register_agent: '/api/agent',
-      discover_agents: '/api/agent?capability=X',
-      propose_deal: '/api/deal',
-      deal_status: '/api/deal?deal_id=X',
+      catalog: 'GET /api/catalog - Browse all services',
+      estimate: 'POST /api/estimate - Instant price estimate',
+      submit_request: 'POST /api/request - Submit service request',
+      negotiate: 'POST /api/negotiate - Price negotiation',
+      track: 'GET /api/track/:requestId - Real-time tracking',
+      proof: 'GET/POST/PUT /api/proof - Proof of completion',
+      webhook: 'GET/POST/DELETE /api/webhook - Status update webhooks',
+      register_agent: 'POST /api/agent - Register as agent',
+      discover_agents: 'GET /api/agent?capability=X - Find agents',
+      propose_deal: 'POST /api/deal - Propose a deal',
+      deal_status: 'GET /api/deal?deal_id=X - Check deal',
+      docs: 'GET /api/docs/_all - Full documentation',
+      skill: 'GET /api/skill - OpenClaw skill definition',
     },
-    authentication: 'None required for reads. Agent ID for deals.',
+    authentication: 'None required for reads. Agent ID for deals and webhooks.',
     rate_limits: {
       free: 100,
       standard: 1000,

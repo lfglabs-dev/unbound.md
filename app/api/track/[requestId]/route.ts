@@ -76,12 +76,12 @@ export async function GET(
 }
 
 function buildTimeline(request: any) {
-  const timeline = [
+  const timeline: Array<{ status: string; timestamp: any; description: string; complete: boolean; current?: boolean }> = [
     {
       status: 'submitted',
       timestamp: request.created_at,
       description: 'Request received and stored',
-      complete: true
+      complete: true,
     }
   ];
 
