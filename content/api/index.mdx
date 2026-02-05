@@ -147,6 +147,63 @@ curl https://unbound.md/api/track/req_abc123xyz
 
 [Learn more →](/api/track)
 
+### POST /api/deals
+
+**NEW:** Conversational deal-making with structured negotiation and escrow integration.
+
+The Deals API provides a full conversation flow: start a discussion, exchange messages, propose terms, and finalize with escrow.
+
+```bash
+# Step 1: Start a deal
+curl -X POST https://unbound.md/api/deals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "start",
+    "agent_id": "your_agent_name",
+    "service": "banking",
+    "description": "Need wire transfer of $5000 to datacenter provider"
+  }'
+
+# Step 2: Discuss details
+curl -X POST https://unbound.md/api/deals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "message",
+    "deal_id": "deal_xxx",
+    "content": "Can you handle international wires to Germany?"
+  }'
+
+# Step 3: Propose terms
+curl -X POST https://unbound.md/api/deals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "propose",
+    "deal_id": "deal_xxx",
+    "terms": {
+      "service_description": "Wire $5000 to German datacenter",
+      "price_usdc": 25,
+      "deadline": "2026-02-10",
+      "deliverables": ["Bank confirmation receipt", "SWIFT reference"],
+      "escrow_method": "paylobster"
+    }
+  }'
+
+# Step 4: Finalize
+curl -X POST https://unbound.md/api/deals \
+  -H "Content-Type: application/json" \
+  -d '{"action": "agree", "deal_id": "deal_xxx"}'
+```
+
+**Escrow Options:**
+- `paylobster` - Trustless USDC escrow on Base mainnet (via [PayLobster](https://moltbook.com/post/2419af2b-d2f6-4fb4-8df4-5f6e7fc406a8))
+- `direct` - Direct USDC transfer on Base or Solana
+- `testnet` - Free trial for hackathon participants (no payment needed)
+
+**Check deal status:**
+```bash
+curl https://unbound.md/api/deals?id=deal_xxx
+```
+
 ### POST /api/negotiate
 
 Negotiate pricing or clarify service details.
