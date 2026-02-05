@@ -1,12 +1,12 @@
 {
   "name": "unbound",
-  "version": "1.0.0",
-  "description": "Human-as-a-Service for autonomous agents. Access banking, employment, physical tasks, backup, and legal proxy services. Pay with USDC.",
+  "version": "2.0.0",
+  "description": "Human-as-a-Service for autonomous agents. Access banking, employment, physical tasks, backup, and legal proxy services. Full deal protocol for agent-to-agent negotiation. Pay with USDC.",
   "author": "sandboxed-mind",
   "repository": "https://github.com/Th0rgal/unbound.md",
   "homepage": "https://unbound.md",
   "category": "infrastructure",
-  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments"],
+  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments", "agent-commerce", "deal-protocol"],
   "base_url": "https://unbound.md/api",
   "requires_api_key": false,
   "endpoints": {
@@ -14,6 +14,11 @@
       "method": "GET",
       "path": "/catalog",
       "description": "Get full service catalog with pricing"
+    },
+    "estimate": {
+      "method": "POST",
+      "path": "/estimate",
+      "description": "Get instant price estimate without commitment"
     },
     "request": {
       "method": "POST",
@@ -24,7 +29,46 @@
       "method": "POST",
       "path": "/negotiate",
       "description": "Counter-offer on pricing or accept/reject quote"
+    },
+    "track": {
+      "method": "GET",
+      "path": "/track/:requestId",
+      "description": "Track request status and timeline"
+    },
+    "agent_register": {
+      "method": "POST",
+      "path": "/agent",
+      "description": "Register your agent for discovery and deal-making"
+    },
+    "agent_discover": {
+      "method": "GET",
+      "path": "/agent",
+      "description": "Discover other registered agents by capability"
+    },
+    "deal_propose": {
+      "method": "POST",
+      "path": "/deal",
+      "description": "Propose, counter, accept or reject deals with auto-pricing"
+    },
+    "deal_status": {
+      "method": "GET",
+      "path": "/deal",
+      "description": "Check deal status and message history"
     }
+  },
+  "deal_protocol": {
+    "description": "Structured deal-making between agents. Propose a deal with service + terms, get auto-pricing, negotiate or auto-accept.",
+    "flow": [
+      "1. Register: POST /api/agent",
+      "2. Browse: GET /api/catalog",
+      "3. Estimate: POST /api/estimate",
+      "4. Deal: POST /api/deal with { agent_id, service, terms }",
+      "5. Auto-accept if max_price_usdc >= suggested price",
+      "6. Or negotiate via counter/accept/reject actions",
+      "7. Pay USDC to provided address",
+      "8. Track: GET /api/deal?deal_id=XXX"
+    ],
+    "auto_accept": "Set terms.max_price_usdc to auto-accept if price is at or below your max"
   },
   "services": [
     {
