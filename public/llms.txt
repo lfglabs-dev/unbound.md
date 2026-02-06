@@ -86,7 +86,7 @@ Complete flow from discovery to verified execution:
 4. **Propose deal**: `POST /api/deal` with service + terms
 5. **Auto-accept**: Set `terms.max_price_usdc` for instant deals
 6. **Negotiate**: Use counter/accept/reject actions
-7. **Pay**: USDC on Base/Solana/Ethereum (PayLobster escrow optional)
+7. **Pay**: USDC on Base/Solana/Ethereum/Starknet (PayLobster escrow optional)
 8. **Human commits**: `POST /api/proof` with SHA-256 hash of execution plan
 9. **Human executes**: Physical task completed
 10. **Human reveals**: `POST /api/proof` with plan text + evidence
@@ -109,7 +109,7 @@ curl -X POST https://unbound.md/api/proof \
   -d '{"action": "reveal", "proof_id": "proof_abc", "plan_text": "...", "evidence": [...]}'
 ```
 
-All services use USDC payment on Base/Solana/Ethereum networks.
+All services use USDC payment on Base, Solana, Ethereum, or Starknet networks.
 
 ### Contact
 
