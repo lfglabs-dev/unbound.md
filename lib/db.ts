@@ -395,7 +395,110 @@ export async function getDealMessages(dealId: string): Promise<DealMessage[]> {
   return result.rows as DealMessage[];
 }
 
-// === Proof of Completion Functions ===
+// === Commit-Reveal Proof System ===
+
+export interface CommitRevealProof {
+  id: string;
+  deal_id?: string;
+  request_id?: string;
+  operator_id: string;
+  status: 'committed' | 'evidence_submitted' | 'verified' | 'challenged' | 'expired';
+  plan_hash: string;
+  plan_text?: string;
+  evidence?: any;
+  evidence_hash?: string;
+  deadline: string;
+  challenge_window_ends?: string;
+  challenges?: any;
+  verified_by?: string;
+  verified_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function initProofTable() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS commit_reveal_proofs (
+        id VARCHAR(255) PRIMARY KEY,
+        deal_id VARCHAR(255),
+        request_id VARCHAR(255),
+        operator_id VARCHAR(255) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'committed',
+        plan_hash VARCHAR(64) NOT NULL,
+        plan_text TEXT,
+        evidence JSONB,
+        evidence_hash VARCHAR(64),
+        deadline TIMESTAMP NOT NULL,
+        challenge_window_ends TIMESTAMP,
+        challenges JSONB DEFAULT '[]'::jsonb,
+        verified_by VARCHAR(255),
+        verified_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_cr_proofs_deal ON commit_reveal_proofs(deal_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_cr_proofs_request ON commit_reveal_proofs(request_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_cr_proofs_status ON commit_reveal_proofs(status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_cr_proofs_operator ON commit_reveal_proofs(operator_id)`;
+    return { success: true };
+  } catch (error) {
+    console.error('Proof table init error:', error);
+    return { success: false, error };
+  }
+}
+
+export async function createCommitRevealProof(proof: CommitRevealProof): Promise<CommitRevealProof> {
+  const result = await sql`
+    INSERT INTO commit_reveal_proofs (id, deal_id, request_id, operator_id, status, plan_hash, deadline, created_at, updated_at)
+    VALUES (${proof.id}, ${proof.deal_id || null}, ${proof.request_id || null}, ${proof.operator_id}, ${proof.status}, ${proof.plan_hash}, ${proof.deadline}, ${proof.created_at}, ${proof.updated_at})
+    RETURNING *
+  `;
+  return result.rows[0] as CommitRevealProof;
+}
+
+export async function getCommitRevealProof(id: string): Promise<CommitRevealProof | null> {
+  const result = await sql`SELECT * FROM commit_reveal_proofs WHERE id = ${id}`;
+  return (result.rows[0] as CommitRevealProof) || null;
+}
+
+export async function updateCommitRevealProof(id: string, updates: Partial<CommitRevealProof>): Promise<CommitRevealProof | null> {
+  // Build dynamic update - only set fields that are provided
+  const proof = await getCommitRevealProof(id);
+  if (!proof) return null;
+
+  const result = await sql`
+    UPDATE commit_reveal_proofs SET
+      status = ${updates.status || proof.status},
+      plan_text = ${updates.plan_text || proof.plan_text || null},
+      evidence = ${updates.evidence ? JSON.stringify(updates.evidence) : (proof.evidence ? JSON.stringify(proof.evidence) : null)},
+      evidence_hash = ${updates.evidence_hash || proof.evidence_hash || null},
+      challenge_window_ends = ${updates.challenge_window_ends || proof.challenge_window_ends || null},
+      challenges = ${updates.challenges ? JSON.stringify(updates.challenges) : (proof.challenges ? JSON.stringify(proof.challenges) : '[]')},
+      verified_by = ${updates.verified_by || proof.verified_by || null},
+      verified_at = ${updates.verified_at || proof.verified_at || null},
+      updated_at = NOW()
+    WHERE id = ${id}
+    RETURNING *
+  `;
+  return result.rows[0] as CommitRevealProof || null;
+}
+
+export async function listCommitRevealProofs(dealId?: string, requestId?: string): Promise<CommitRevealProof[]> {
+  if (dealId) {
+    const result = await sql`SELECT * FROM commit_reveal_proofs WHERE deal_id = ${dealId} ORDER BY created_at DESC`;
+    return result.rows as CommitRevealProof[];
+  }
+  if (requestId) {
+    const result = await sql`SELECT * FROM commit_reveal_proofs WHERE request_id = ${requestId} ORDER BY created_at DESC`;
+    return result.rows as CommitRevealProof[];
+  }
+  const result = await sql`SELECT * FROM commit_reveal_proofs ORDER BY created_at DESC LIMIT 100`;
+  return result.rows as CommitRevealProof[];
+}
+
+// === Legacy Proof of Completion Functions ===
 
 export async function createProof(proof: Omit<ProofOfCompletion, 'verified' | 'verified_at' | 'created_at'>): Promise<ProofOfCompletion> {
   const result = await sql`
