@@ -54,10 +54,30 @@
       "method": "GET",
       "path": "/deal",
       "description": "Check deal status and message history"
+    },
+    "proof_commit": {
+      "method": "POST",
+      "path": "/proof",
+      "description": "Commit execution plan hash or reveal + verify proof of completion"
+    },
+    "proof_list": {
+      "method": "GET",
+      "path": "/proof",
+      "description": "List proofs by deal_id or request_id"
+    },
+    "webhook_manage": {
+      "method": "POST",
+      "path": "/webhook",
+      "description": "Register webhook for real-time event notifications"
+    },
+    "deals_conversation": {
+      "method": "POST",
+      "path": "/deals",
+      "description": "Start or continue a conversation before committing to a deal"
     }
   },
   "deal_protocol": {
-    "description": "Structured deal-making between agents. Propose a deal with service + terms, get auto-pricing, negotiate or auto-accept.",
+    "description": "Complete agent-to-physical-world protocol: discovery, negotiation, execution, verification.",
     "flow": [
       "1. Register: POST /api/agent",
       "2. Browse: GET /api/catalog",
@@ -65,10 +85,15 @@
       "4. Deal: POST /api/deal with { agent_id, service, terms }",
       "5. Auto-accept if max_price_usdc >= suggested price",
       "6. Or negotiate via counter/accept/reject actions",
-      "7. Pay USDC to provided address",
-      "8. Track: GET /api/deal?deal_id=XXX"
+      "7. Pay USDC to provided address (PayLobster escrow optional)",
+      "8. Human commits execution plan hash: POST /api/proof { action: 'commit' }",
+      "9. Human executes physical task",
+      "10. Human reveals plan + evidence: POST /api/proof { action: 'reveal' }",
+      "11. 24hr challenge window for disputes",
+      "12. Proof verified → USDC released"
     ],
-    "auto_accept": "Set terms.max_price_usdc to auto-accept if price is at or below your max"
+    "auto_accept": "Set terms.max_price_usdc to auto-accept if price is at or below your max",
+    "proof_system": "Commit-reveal hash verification. Human cannot change plan after the fact."
   },
   "services": [
     {

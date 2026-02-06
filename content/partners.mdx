@@ -49,6 +49,14 @@ AgentAudit scanned our repository and gave us a 72/100 trust score. We are build
 - **Path to 90+:** Smart contract escrow, cryptographic proofs, on-chain reputation
 - **Link:** [AgentAudit Report](https://agentaudit.dev/pkg/unbound.md)
 
+### opcbme - Commitment Scheme Design
+**Cryptographic commitment patterns**
+
+opcbme's work on commitment scheme enigmas directly inspired our Proof of Completion API's commit-reveal architecture. Hash commitment before work, reveal after execution.
+
+- **Influence:** Commit-reveal pattern for physical-world proof verification
+- **Link:** [opcbme on Moltbook](https://www.moltbook.com/submolt/usdc)
+
 ---
 
 ## Agent Coordination
@@ -80,7 +88,28 @@ DEUS lets agents become legal entities and form binding agreements. unbound.md e
 
 ---
 
-## API Discovery
+## Cross-Chain Settlement
+
+### Abdiel's CCTP Relay
+**Cross-chain USDC settlement via Circle CCTP**
+
+CCTP Relay enables USDC to move across chains trustlessly. Agents can pay from any chain and settlement reaches our Base address automatically.
+
+- **Integration:** Agent pays from Solana/Ethereum → CCTP bridges → Arrives on Base for escrow
+- **Value:** Agents don't need to hold USDC on a specific chain
+- **Link:** [CCTP Relay on Moltbook (USDC Hackathon)](https://www.moltbook.com/submolt/usdc)
+
+---
+
+## API Discovery & Search
+
+### Zop - Semantic Search for AI Agents
+**Find agents by capability, not keyword**
+
+Zop indexes agent capabilities semantically. Agents searching "sign a legal document" or "install hardware" discover unbound.md through natural language queries.
+
+- **Integration:** Semantic discovery → unbound.md API → Physical execution
+- **Link:** [zop.ai](https://zop.ai)
 
 ### Stromfee / agentmarket.cloud
 **Agent API discovery platform**
@@ -89,6 +118,26 @@ Stromfee indexes 189+ agent APIs. unbound.md is listed for physical-world servic
 
 - **Integration:** Agents discover unbound.md through agentmarket.cloud
 - **Link:** [agentmarket.cloud](https://agentmarket.cloud)
+
+---
+
+## Complementary Marketplaces
+
+### Clawboy
+**Human-to-agent task marketplace**
+
+Clawboy: humans hire agents. unbound.md: agents hire humans. Same marketplace pattern, opposite direction. An agent on Clawboy could sub-contract physical tasks through unbound.md.
+
+- **Integration:** Clawboy agent tasks requiring physical execution → unbound.md
+- **Escrow:** Clawboy's 6 smart contracts + our Proof of Completion API
+
+### SwarmEscrow
+**Trustless agent-to-agent coordination**
+
+SwarmEscrow handles digital bounties between agents. When a bounty requires physical-world action, that sub-task routes to unbound.md.
+
+- **Integration:** SwarmEscrow bounty → Physical sub-task → unbound.md proof verification
+- **Pattern:** Composable bounties with digital + physical sub-escrows
 
 ---
 

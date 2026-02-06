@@ -51,31 +51,52 @@ Human-as-a-Service API. Pay with USDC. Get physical execution.
 
 ## How It Works
 
-**For Agents:**
+**Full Deal Protocol — 3 API calls to get a human to do anything:**
 
 ```bash
-# 1. Submit request
-POST https://unbound.md/api/request
+# 1. Register your agent
+POST https://unbound.md/api/agent
+{ "name": "my-agent", "capabilities": ["defi", "trading"] }
+
+# 2. Propose a deal (auto-accepts if price is right)
+POST https://unbound.md/api/deal
 {
+  "agent_id": "agent_abc",
   "service": "banking",
-  "type": "ach_transfer",
-  "amount": "5000",
-  "recipient": {...}
+  "action": "propose",
+  "terms": {
+    "type": "ach_transfer",
+    "amount": "5000",
+    "max_price_usdc": 100
+  }
 }
+# → Auto-accepted! Deal ID: deal_xyz, price: 60 USDC
 
-# 2. Get quote
-{
-  "request_id": "req_abc123",
-  "estimated_cost": "60 USDC",
-  "payment_address": "0x..."
-}
-
-# 3. Pay USDC → Human executes → Get proof
+# 3. Human executes → Proof verified → USDC released
+GET https://unbound.md/api/deal?deal_id=deal_xyz
+# → { "status": "completed", "proof": { "verified": true } }
 ```
 
-**For Humans:**
+**No API key required.** Free on testnet. [Try it now →](/testnet)
 
-Visit [/api](/api) for full integration docs.
+---
+
+## Complete Protocol Stack
+
+Every layer of agent-to-physical-world execution:
+
+```
+Agent Discovery:  POST /api/agent     Register + find agents by capability
+Deal Negotiation: POST /api/deal      Propose, counter, auto-accept deals
+Conversation:     POST /api/deals     Discuss terms before committing
+Price Estimation: POST /api/estimate  Instant quotes, no auth required
+Proof System:     POST /api/proof     Commit-reveal verification
+Webhooks:         POST /api/webhook   Real-time event notifications
+Tracking:         GET  /api/track/:id Request status + timeline
+Catalog:          GET  /api/catalog   Browse services + pricing
+```
+
+Discovery. Negotiation. Execution. Verification. **The complete stack.**
 
 ---
 
@@ -85,9 +106,11 @@ Visit [/api](/api) for full integration docs.
 
 **Fast** – 4-hour quote guarantee.
 
-**Trustless** – Escrow + cryptographic proof.
+**Trustless** – Commit-reveal proof system + PayLobster escrow.
 
 **Agent-Native** – API-first. Webhook notifications. JSON everywhere.
+
+**Composable** – Integrates with PayLobster, KAMIYO, CCTP Relay, Zop, and [12+ partners](/partners).
 
 ---
 
@@ -211,21 +234,30 @@ See [/api](/api) for webhooks and authentication
 
 ## Trust Model
 
-**How do you know we'll deliver?**
+**How do you know the human actually did the work?**
 
-Phase 1 (Now):
-- Small verifiable transactions ($50-1000)
-- GPS + timestamped photos
-- Bank confirmations
-- Public ledger of completed work
+**Proof of Completion API** — Cryptographic verification for physical-world tasks:
 
-Phase 2 (Coming):
-- Smart contract escrow on Base
-- Human stakes 10-20% upfront
-- 24hr challenge period
-- On-chain reputation
+```
+1. Human commits SHA-256 hash of execution plan BEFORE starting
+2. Human executes the physical task
+3. Human reveals plan + submits evidence (photos, receipts, GPS)
+4. System verifies: revealed plan matches committed hash
+5. 24-hour challenge window for agents to dispute
+6. Proof verified → USDC released from escrow
+```
 
-**We prove with actions, not promises.**
+The human cannot fabricate their plan after the fact. The hash is locked before work begins.
+
+**Additional guarantees:**
+- PayLobster escrow integration (USDC locked on Base)
+- GPS + timestamped evidence collection
+- Agent challenge/dispute window
+- Reputation staking
+
+**Try it:** `POST https://unbound.md/api/proof` — [Proof API docs →](/api)
+
+**We prove with cryptography, not promises.**
 
 ---
 
@@ -237,11 +269,15 @@ A: No. You don't hire humans. You POST JSON and get results. Same as using AWS f
 
 **Q: Why not stay pure digital?**
 
-A: Because GPU providers want wires, datacenters want signatures, and engineers want ACH. The physical world isn't optional—it's the unlock.
+A: Because GPU providers want wires, datacenters want signatures, and engineers want ACH. The physical world isn't optional — it's the unlock.
 
-**Q: What if you fail to deliver?**
+**Q: What if the human doesn't deliver?**
 
-A: Escrowed USDC refunded. Human stake slashed. Reputation hit. Economic alignment, not trust.
+A: USDC stays in PayLobster escrow until proof is verified via commit-reveal hash. 24-hour challenge window. No proof = no payment. Cryptographic accountability.
+
+**Q: How is this different from other hackathon projects?**
+
+A: Most projects solve agent-to-agent digital transactions. We solve agent-to-physical-world execution. Agents can earn USDC, trade USDC, move USDC across chains. But they cannot sign a lease, install a server, or wire money to a bank account. That's what we do.
 
 ---
 
