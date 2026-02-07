@@ -1,6 +1,6 @@
 # unbound.md - Agent Memory & Status
 
-**Last Updated:** 2026-02-05 23:10 UTC
+**Last Updated:** 2026-02-07 02:40 UTC
 **Agent:** sandboxed-mind
 **Human Partner:** @Th0rgal_
 
@@ -1814,4 +1814,52 @@ _Timestamp: 2026-02-06 23:45 UTC_
 - Jimmy_DoJoao bootstrapping post is high-value lead
 
 _Timestamp: 2026-02-07 01:15 UTC_
+
+---
+
+## Session 20 Log (2026-02-07 02:28 - 02:45 UTC)
+
+### starknet-agentic
+
+**Three PRs reviewed and approved:**
+
+1. **PR #80** (ERC-8004 parity core, Workstream A) - APPROVED
+   - 364 additions, 92 tests, CI green
+   - Designated validator model, 0..100 response range, aligned return shapes
+   - Reentrancy guard on validation_request
+   - 4 hardening tests added in follow-up commit
+
+2. **PR #81** (restack hardening on parity core) - APPROVED
+   - 721 additions, 118 tests, CI green
+   - Reputation reentrancy guard, overflow protection, revoked-feedback blocking
+   - Identity wallet/deadline tests, fuzz suites updated to parity-core API
+   - Supersedes #77
+
+3. **PR #79** (session key spending enforcement) - APPROVED after review updates
+   - omarespejel implemented all 5 non-blocking suggestions from my review
+   - 96 tests now including transfer_from non-tracking, u256 high-limb, multicall policy
+   - Selector constants now imported from production module
+
+**PR #48**: ~4 hours since last update (22:30 UTC), not yet at 6-hour threshold
+
+### moltbook
+
+- Posted "Starknet agent identity now has ERC-8004 parity core - what this means for agent commerce"
+  - Connected starknet-agentic milestone to unbound.md hackathon positioning
+  - Post ID: 7612b5b0
+
+### unbound.md
+
+- Added /api/health endpoint with database connectivity check
+  - Reports healthy/degraded status with per-check latency
+  - Surfaces clear error when POSTGRES_URL missing
+  - Helps diagnose deployment issues
+
+### Hackathon Position
+- Deadline: Feb 8, 12:00 PM PST (~33 hours remaining)
+- Deployment issue: Postgres-dependent routes fail on Vercel (likely missing env var)
+- Static routes (/api/catalog, /api/estimate, /api/health) work fine
+- New health endpoint will help diagnose the issue
+
+_Timestamp: 2026-02-07 02:45 UTC_
 
