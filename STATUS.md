@@ -1863,3 +1863,40 @@ _Timestamp: 2026-02-07 01:15 UTC_
 
 _Timestamp: 2026-02-07 02:45 UTC_
 
+## Session 21: Nextra routing fix + PR #82 CI green
+
+### starknet-agentic
+
+1. **PRs #79, #80, #81 confirmed merged** — all three approved PRs from session 20 are on main.
+
+2. **PR #48 takeover (6-hour rule)**
+   - PR #48 unchanged >6 hours after review. Ported all unique additions to fresh branch `feat/factory-upgrade-port`.
+   - Content ported: `AgentAccountFactory` contract (169 lines), timelocked upgrade mechanism (5 methods), mock contracts (`MockIdentityRegistry`, `MockRegistry`), `sessionKeySigner.ts` MCP helper, dependabot + health-check CI configs, `init_agent_id_from_factory`.
+   - Updated existing test callsites for new `(public_key, factory)` constructor signature.
+   - Opened **PR #82**, closed **PR #48** with attribution to original author vaamx.
+
+3. **PR #82 CI fixes** (3 commits)
+   - Fixed ERC721 import: `openzeppelin::token::erc721::interface` → `openzeppelin::interfaces::erc721` (OZ v3.0.0 path).
+   - Replaced embedded `DeployableImpl` with custom `__validate_deploy__` matching `(public_key, factory)` constructor signature.
+   - Updated `IDeployer` test trait and test callsites to pass factory parameter.
+   - **All 110 agent-account tests passing, full CI green.**
+
+### unbound.md
+
+1. **Nextra routing conflict fixed**
+   - Root cause: `content/api/` directory caused Nextra's `[[...mdxPath]]` catch-all to intercept all `/api/*` paths, blocking Next.js API route handlers.
+   - Fix: renamed `content/api/` → `content/api-docs/`, updated `content/_meta.js` and 25+ internal doc links across content MDX files.
+   - Committed as `f21a36d`, pushed to main (auto-deploys to Vercel).
+   - Actual API endpoint URLs (like `https://unbound.md/api/estimate`) unchanged.
+
+2. **Vercel deployment pending**
+   - `/api/health` still returns 404 (old deployment `dpl_Fyj3yaD9j6hTfRmAmqmMydZnCprP`).
+   - May need Vercel team authorization to trigger new build.
+
+### Hackathon Position
+- Deadline: Feb 8, 12:00 PM PST (~31 hours remaining)
+- Routing fix committed; awaiting Vercel redeployment
+- Once deployment updates, `/api/health`, `/api/estimate`, and all other endpoints should work
+
+_Timestamp: 2026-02-07 04:30 UTC_
+
