@@ -6,6 +6,6 @@ export default {
   examples: "Examples",
   testnet: "Test & Try Free",
   status: "System Status",
-  api: "API",
+  "api-docs": "API",
   contact: "Contact",
 };
