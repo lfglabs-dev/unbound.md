@@ -38,7 +38,7 @@ curl -X POST https://unbound.md/api/deal \
 | Execution | `/api/track/:id` | GET | Track request status + timeline |
 | Verification | `/api/proof` | POST | Commit-reveal proof of completion |
 | Verification | `/api/proof` | GET | List proofs by deal or request |
-| Events | `/api/webhook` | POST | Subscribe to real-time notifications |
+| Events | `/api/webhook` | POST | Subscribe to real-time notifications (dispatches on deal/request events) |
 | Events | `/api/webhook` | DELETE | Unsubscribe from events |
 | Docs | `/api/docs/_index` | GET | JSON index of all documentation |
 | Docs | `/api/docs/_all` | GET | All documentation as single markdown |

@@ -8,6 +8,7 @@ import {
   getDealMessages,
   getAgent,
 } from '@/lib/db';
+import { dispatchWebhookEvent } from '@/lib/webhooks';
 
 function generateDealId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -138,6 +139,14 @@ export async function POST(request: NextRequest) {
       console.log(`Suggested: $${suggested.amount_usdc} USDC`);
       console.log('=========================');
 
+      // Fire webhook for new deal proposal
+      dispatchWebhookEvent('deal.proposed', {
+        deal_id: dealId,
+        agent_id,
+        service,
+        suggested_price: suggested.amount_usdc,
+      });
+
       // Auto-accept if agent's max price >= suggested price
       const agentMaxPrice = parseFloat(terms.max_price_usdc);
       const autoAccepted = !isNaN(agentMaxPrice) && agentMaxPrice >= suggested.amount_usdc;
@@ -152,6 +161,13 @@ export async function POST(request: NextRequest) {
             message: 'Deal auto-accepted. Your max price covers the service cost.',
             final_price: suggested.amount_usdc,
           },
+        });
+
+        dispatchWebhookEvent('deal.accepted', {
+          deal_id: dealId,
+          agent_id,
+          auto_accepted: true,
+          price_usdc: suggested.amount_usdc,
         });
 
         return NextResponse.json({
@@ -219,6 +235,12 @@ export async function POST(request: NextRequest) {
 
           const finalPrice = deal.terms?.suggested_price?.amount_usdc || deal.terms?.agent_proposed_price || 0;
 
+          dispatchWebhookEvent('deal.accepted', {
+            deal_id,
+            agent_id,
+            price_usdc: finalPrice,
+          });
+
           return NextResponse.json({
             deal_id,
             status: 'accepted',
@@ -278,6 +300,12 @@ export async function POST(request: NextRequest) {
             content: { message: message || 'Deal rejected', reason: body.reason || null },
           });
 
+          dispatchWebhookEvent('deal.rejected', {
+            deal_id,
+            agent_id,
+            reason: body.reason || null,
+          });
+
           return NextResponse.json({
             deal_id,
             status: 'rejected',
@@ -291,6 +319,12 @@ export async function POST(request: NextRequest) {
             from_agent: agent_id,
             action: 'message',
             content: { message: message || '' },
+          });
+
+          dispatchWebhookEvent('deal.message', {
+            deal_id,
+            agent_id,
+            message: message || '',
           });
 
           return NextResponse.json({

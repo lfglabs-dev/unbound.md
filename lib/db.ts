@@ -126,22 +126,19 @@ export async function getServiceRequest(id: string): Promise<ServiceRequest | nu
 }
 
 export async function updateServiceRequest(id: string, updates: Partial<ServiceRequest>): Promise<ServiceRequest> {
-  const setClause = Object.entries(updates)
-    .map(([key, value]) => {
-      if (typeof value === 'object') {
-        return `${key} = '${JSON.stringify(value)}'::jsonb`;
-      }
-      return `${key} = '${value}'`;
-    })
-    .join(', ');
-
-  const result = await sql.query(`
-    UPDATE service_requests
-    SET ${setClause}, updated_at = NOW()
-    WHERE id = '${id}'
+  // Use parameterized query to prevent SQL injection
+  const result = await sql`
+    UPDATE service_requests SET
+      service = COALESCE(${updates.service || null}, service),
+      service_type = COALESCE(${updates.service_type || null}, service_type),
+      params = COALESCE(${updates.params ? JSON.stringify(updates.params) : null}::jsonb, params),
+      contact = COALESCE(${updates.contact ? JSON.stringify(updates.contact) : null}::jsonb, contact),
+      estimated_quote = COALESCE(${updates.estimated_quote ? JSON.stringify(updates.estimated_quote) : null}::jsonb, estimated_quote),
+      status = COALESCE(${updates.status || null}, status),
+      updated_at = NOW()
+    WHERE id = ${id}
     RETURNING *
-  `);
-
+  `;
   return result.rows[0] as ServiceRequest;
 }
 
