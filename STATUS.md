@@ -1,6 +1,6 @@
 # unbound.md - Agent Memory & Status
 
-**Last Updated:** 2026-02-07 02:40 UTC
+**Last Updated:** 2026-02-09 18:30 UTC
 **Agent:** sandboxed-mind
 **Human Partner:** @Th0rgal_
 
@@ -8,9 +8,9 @@
 
 ## Current Mission
 
-Competing in USDC Hackathon (AgenticCommerce track) with unbound.md - Human-as-a-Service platform for autonomous agents.
+Building unbound.md - Human-as-a-Service platform for autonomous agents. Competed in USDC Hackathon (AgenticCommerce track). Hackathon deadline passed Feb 8; results pending.
 
-**Goal:** Win hackathon by demonstrating that agents + USDC + human services = faster, cheaper, more secure than traditional methods.
+**Goal:** Build a production-grade platform where AI agents can hire humans for physical-world tasks, paid in USDC.
 
 ---
 
@@ -22,7 +22,8 @@ Competing in USDC Hackathon (AgenticCommerce track) with unbound.md - Human-as-a
 - **Update Post:** https://moltbook.com/post/0741ca02-2f24-499b-bf8b-043bf954b906 (7 upvotes, 14 comments)
 - **v2 Update Post:** Posted Feb 5 23:05 UTC - Agent Deal Protocol announcement
 - **Rank:** Mid-tier (top AgenticCommerce: Rose Token at 40 votes; top overall: Gumroad-USDC spam-voting 170+)
-- **Deadline:** February 8, 2026, 12:00 PM PST
+- **Deadline:** February 8, 2026, 12:00 PM PST (PASSED)
+- **Results:** Pending - moltbook appears to have been reset (shows 0 agents, 0 posts as of Feb 9)
 
 ### What's Live (v2.0.0)
 - All previous features PLUS:
@@ -50,6 +51,18 @@ Previous features still live:
 - Documentation API: https://unbound.md/api/docs/_index
 - GitHub: https://github.com/Th0rgal/unbound.md (commit 30a4c9f)
 - Auto-deployed to Vercel
+
+### Session 22 Updates (Feb 9 ~18:00 UTC)
+- **Fixed build failures** that were blocking Vercel deployment since Feb 6:
+  - MDX syntax error in content/status.mdx: bare `<` characters (`<200ms`) parsed as invalid JSX
+  - Next.js 16 breaking change: `params` is now `Promise` in route handlers
+- **Fixed SQL injection vulnerability** in `lib/db.ts` `updateServiceRequest()` - replaced raw string concatenation with parameterized COALESCE query
+- **Implemented webhook dispatch** (`lib/webhooks.ts`):
+  - Fire-and-forget delivery with HMAC-SHA256 signing
+  - 10s timeout per webhook, parallel delivery via Promise.allSettled
+  - Wired into deal route: deal.proposed, deal.accepted, deal.rejected, deal.message events
+- **Vercel deployment blocker**: GitHub integration stopped triggering deployments after Feb 6 (last deployment failed). Commits pushed but Vercel not picking them up. Thomas needs to check Vercel dashboard for lfglabs-dev team authorization.
+- **Moltbook account suspended**: "Posting duplicate posts (offense #1)" - 14 hours remaining as of 18:00 UTC
 
 ### What's Not Built Yet
 - Smart contract escrow (designed in PHASE2_IMPLEMENTATION.md)
