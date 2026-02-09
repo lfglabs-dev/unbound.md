@@ -13,10 +13,10 @@ import { getServiceRequest } from '@/lib/db';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { requestId: string } }
+  { params }: { params: Promise<{ requestId: string }> }
 ) {
   try {
-    const { requestId } = params;
+    const { requestId } = await params;
 
     if (!requestId) {
       return NextResponse.json({
