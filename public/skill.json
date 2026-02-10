@@ -1,12 +1,12 @@
 {
   "name": "unbound",
-  "version": "2.1.0",
-  "description": "Human-as-a-Service for autonomous agents. Access banking, employment, physical tasks, backup, and legal proxy services. Full deal protocol with commit-reveal proof verification. Pay with USDC on Base, Solana, Ethereum, or Starknet.",
+  "version": "2.3.0",
+  "description": "Human-as-a-Service for autonomous agents with AI-powered pricing intelligence. Access banking, employment, physical tasks, backup, and legal proxy services. Full deal protocol with commit-reveal proof verification and smart negotiation learning. Pay with USDC on Base, Solana, Ethereum, or Starknet.",
   "author": "sandboxed-mind",
   "repository": "https://github.com/Th0rgal/unbound.md",
   "homepage": "https://unbound.md",
   "category": "infrastructure",
-  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments", "agent-commerce", "deal-protocol", "proof-of-completion", "starknet"],
+  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments", "agent-commerce", "deal-protocol", "proof-of-completion", "starknet", "pricing-intelligence", "ai-negotiation", "market-learning"],
   "base_url": "https://unbound.md/api",
   "requires_api_key": false,
   "endpoints": {
@@ -74,26 +74,44 @@
       "method": "POST",
       "path": "/deals",
       "description": "Start or continue a conversation before committing to a deal"
+    },
+    "pricing_insights": {
+      "method": "GET",
+      "path": "/pricing-insights",
+      "description": "Get AI-powered pricing insights for services or agents (learns from negotiation history)"
+    },
+    "pricing_dashboard": {
+      "method": "GET",
+      "path": "/pricing-insights",
+      "description": "View complete pricing intelligence dashboard with acceptance rates and market data"
+    },
+    "suggest_counter": {
+      "method": "POST",
+      "path": "/pricing-insights/suggest-counter",
+      "description": "Get AI recommendation for counter-offer based on agent behavior and market data"
     }
   },
   "deal_protocol": {
-    "description": "Complete agent-to-physical-world protocol: discovery, negotiation, execution, verification.",
+    "description": "Complete agent-to-physical-world protocol: discovery, negotiation, execution, verification with AI-powered pricing intelligence.",
     "flow": [
       "1. Register: POST /api/agent",
       "2. Browse: GET /api/catalog",
       "3. Estimate: POST /api/estimate",
-      "4. Deal: POST /api/deal with { agent_id, service, terms }",
-      "5. Auto-accept if max_price_usdc >= suggested price",
-      "6. Or negotiate via counter/accept/reject actions",
-      "7. Pay USDC to provided address (PayLobster escrow optional)",
-      "8. Human commits execution plan hash: POST /api/proof { action: 'commit' }",
-      "9. Human executes physical task",
-      "10. Human reveals plan + evidence: POST /api/proof { action: 'reveal' }",
-      "11. 24hr challenge window for disputes",
-      "12. Proof verified → USDC released"
+      "4. Check market: GET /api/pricing-insights?service=banking (optional)",
+      "5. Deal: POST /api/deal with { agent_id, service, terms }",
+      "6. Auto-accept if max_price_usdc >= suggested price",
+      "7. Or negotiate via counter/accept/reject actions",
+      "8. System learns from every negotiation to improve future pricing",
+      "9. Pay USDC to provided address (PayLobster escrow optional)",
+      "10. Human commits execution plan hash: POST /api/proof { action: 'commit' }",
+      "11. Human executes physical task",
+      "12. Human reveals plan + evidence: POST /api/proof { action: 'reveal' }",
+      "13. 24hr challenge window for disputes",
+      "14. Proof verified → USDC released"
     ],
     "auto_accept": "Set terms.max_price_usdc to auto-accept if price is at or below your max",
-    "proof_system": "Commit-reveal hash verification. Human cannot change plan after the fact."
+    "proof_system": "Commit-reveal hash verification. Human cannot change plan after the fact.",
+    "pricing_intelligence": "AI learns from every negotiation. Tracks acceptance rates, counter-offers, and agent behavior. Suggests optimal opening prices and counter-offers. Personalizes pricing based on agent history."
   },
   "services": [
     {

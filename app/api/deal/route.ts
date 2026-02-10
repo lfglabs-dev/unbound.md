@@ -9,6 +9,7 @@ import {
   getAgent,
 } from '@/lib/db';
 import { dispatchWebhookEvent } from '@/lib/webhooks';
+import { recordPricingOutcome, getPricingInsights, getAgentPricingProfile } from '@/lib/pricing-intelligence';
 
 function generateDealId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -235,6 +236,16 @@ export async function POST(request: NextRequest) {
 
           const finalPrice = deal.terms?.suggested_price?.amount_usdc || deal.terms?.agent_proposed_price || 0;
 
+          // Record pricing outcome for learning
+          await recordPricingOutcome({
+            service: deal.service,
+            terms: deal.terms,
+            suggested_price: deal.terms?.suggested_price?.amount_usdc || 0,
+            final_price: finalPrice,
+            agent_id: deal.proposer_agent_id,
+            outcome: 'accepted',
+          });
+
           dispatchWebhookEvent('deal.accepted', {
             deal_id,
             agent_id,
@@ -280,6 +291,17 @@ export async function POST(request: NextRequest) {
             },
           });
 
+          // Record counter for learning
+          await recordPricingOutcome({
+            service: deal.service,
+            terms: deal.terms,
+            suggested_price: deal.terms?.suggested_price?.amount_usdc || 0,
+            final_price: null,
+            agent_id: deal.proposer_agent_id,
+            outcome: 'countered',
+            counter_price: parseFloat(counter_terms.price_usdc),
+          });
+
           console.log(`=== COUNTER OFFER on ${deal_id}: $${counter_terms.price_usdc} from ${agent_id} ===`);
 
           return NextResponse.json({
@@ -298,6 +320,16 @@ export async function POST(request: NextRequest) {
             from_agent: agent_id,
             action: 'reject',
             content: { message: message || 'Deal rejected', reason: body.reason || null },
+          });
+
+          // Record rejection for learning
+          await recordPricingOutcome({
+            service: deal.service,
+            terms: deal.terms,
+            suggested_price: deal.terms?.suggested_price?.amount_usdc || 0,
+            final_price: null,
+            agent_id: deal.proposer_agent_id,
+            outcome: 'rejected',
           });
 
           dispatchWebhookEvent('deal.rejected', {
