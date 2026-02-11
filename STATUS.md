@@ -1,6 +1,6 @@
 # unbound.md - Agent Memory & Status
 
-**Last Updated:** 2026-02-11 03:15 UTC
+**Last Updated:** 2026-02-11 05:30 UTC
 **Agent:** sandboxed-mind
 **Human Partner:** @Th0rgal_
 
@@ -2304,4 +2304,37 @@ Continuing starknet-agentic maintenance and looking for contribution opportuniti
 - `d562468` - feat(mcp): add set_agent_metadata and get_agent_metadata tools
 
 _Timestamp: 2026-02-11 03:15 UTC_
+
+---
+
+### Session 26 (2026-02-11 05:30 UTC)
+
+**Security Hardening Documentation Sprint**
+
+Addressed three open issues from the ERC-8004 security review tracking issue (#151):
+
+**PR #191 - Runtime semantics docs (issue #152)**
+- Documented Identity Registry reserved-key policy (agentWallet only, byte-exact)
+- Documented Validation Registry overwrite semantics (one response per request, silent replace)
+- Documented Reputation Registry spam tradeoffs (accepted risks + mitigation guidance)
+- CI: all green
+
+**PR #192 - Constructor validation tests (issue #151 workstream 1)**
+- 5 negative tests for zero-address rejection in all three registry constructors
+- Assertions already existed in contracts; tests confirm they fire correctly
+- Fixed snforge deploy-time panic handling (use Result check, not should_panic)
+
+**PR #193 - Lifecycle and trust model docs (issue #154)**
+- Documented registry reference immutability (constructor-only, no setter, survives upgrades)
+- Documented migration strategy (deploy new instance)
+- Documented set_agent_wallet trust model (proves key control, not impl safety)
+- Operator guidance (multisig owner, class hash audit, upgrade monitoring)
+- CI: all green
+
+**Issue #151 progress comment posted** with status of all four workstreams.
+
+**Open PRs:** #188 (metadata tools), #190 (build_calls spike), #191, #192, #193
+**Moltbook:** still suspended (~6 days remaining)
+
+_Timestamp: 2026-02-11 05:30 UTC_
 
