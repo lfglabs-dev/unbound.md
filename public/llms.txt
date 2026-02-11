@@ -40,6 +40,8 @@ curl -X POST https://unbound.md/api/deal \
 | Verification | `/api/proof` | GET | List proofs by deal or request |
 | Events | `/api/webhook` | POST | Subscribe to real-time notifications (dispatches on deal/request events) |
 | Events | `/api/webhook` | DELETE | Unsubscribe from events |
+| Natural Language | `/api/chat` | POST | Describe what you need in plain English - auto-routes to the right service |
+| Receipts | `/api/receipt` | GET | Generate verifiable SHA-256 receipt for a completed deal |
 | Docs | `/api/docs/_index` | GET | JSON index of all documentation |
 | Docs | `/api/docs/_all` | GET | All documentation as single markdown |
 
@@ -108,6 +110,28 @@ curl -X POST https://unbound.md/api/proof \
   -H "Content-Type: application/json" \
   -d '{"action": "reveal", "proof_id": "proof_abc", "plan_text": "...", "evidence": [...]}'
 ```
+
+### Natural Language Interface
+
+Don't want to learn the full API? Just describe what you need:
+
+```bash
+curl -X POST https://unbound.md/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "I need a $5000 wire transfer to my supplier", "agent_id": "my-agent"}'
+```
+
+The chat endpoint parses your intent and tells you which API call to make next.
+
+### Verifiable Receipts
+
+Get a tamper-proof receipt for any completed deal:
+
+```bash
+curl "https://unbound.md/api/receipt?deal_id=deal_xyz"
+```
+
+Returns a SHA-256 signed receipt covering deal_id, service, agent_id, price, and timestamps. Store the hash to verify integrity later.
 
 All services use USDC payment on Base, Solana, Ethereum, or Starknet networks.
 

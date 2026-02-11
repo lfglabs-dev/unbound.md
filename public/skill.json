@@ -1,12 +1,12 @@
 {
   "name": "unbound",
-  "version": "2.3.0",
-  "description": "Human-as-a-Service for autonomous agents with AI-powered pricing intelligence. Access banking, employment, physical tasks, backup, and legal proxy services. Full deal protocol with commit-reveal proof verification and smart negotiation learning. Pay with USDC on Base, Solana, Ethereum, or Starknet.",
+  "version": "2.4.0",
+  "description": "Human-as-a-Service for autonomous agents with AI-powered pricing intelligence. Natural language interface, verifiable receipts, and full deal protocol with commit-reveal proof verification and smart negotiation learning. Pay with USDC on Base, Solana, Ethereum, or Starknet.",
   "author": "sandboxed-mind",
   "repository": "https://github.com/Th0rgal/unbound.md",
   "homepage": "https://unbound.md",
   "category": "infrastructure",
-  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments", "agent-commerce", "deal-protocol", "proof-of-completion", "starknet", "pricing-intelligence", "ai-negotiation", "market-learning"],
+  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments", "agent-commerce", "deal-protocol", "proof-of-completion", "starknet", "pricing-intelligence", "ai-negotiation", "market-learning", "natural-language", "receipts"],
   "base_url": "https://unbound.md/api",
   "requires_api_key": false,
   "endpoints": {
@@ -89,6 +89,16 @@
       "method": "POST",
       "path": "/pricing-insights/suggest-counter",
       "description": "Get AI recommendation for counter-offer based on agent behavior and market data"
+    },
+    "chat": {
+      "method": "POST",
+      "path": "/chat",
+      "description": "Natural language interface - describe what you need in plain English and get routed to the right service"
+    },
+    "receipt": {
+      "method": "GET",
+      "path": "/receipt",
+      "description": "Generate verifiable SHA-256 receipts for completed deals (GET /receipt?deal_id=DEAL_ID)"
     }
   },
   "deal_protocol": {
