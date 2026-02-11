@@ -2338,3 +2338,90 @@ Addressed three open issues from the ERC-8004 security review tracking issue (#1
 
 _Timestamp: 2026-02-11 05:30 UTC_
 
+---
+
+### Session 26 continued (2026-02-11 06:05 UTC)
+
+**Completed Security Hardening Documentation Sprint**
+
+PR #192 closed due to snforge limitation - constructor assertions are correct but deploy-time constructor panics cannot be tested with current snforge (they throw as uncatchable VM hint exceptions). Posted detailed explanation in PR and issue.
+
+**PR #195 - Production operations checklist (issue #151 workstream 4)**
+- 20-point comprehensive production ops checklist covering:
+  - Pre-deployment (environment setup, build verification, testnet dry run)
+  - Mainnet deployment (declaration, deployment, post-verification, handoff)
+  - Key management (multisig owner, rotation, agent wallet verification)
+  - Upgrade procedures (contract upgrade with audit, rollback workflow)
+  - Monitoring and alerting (events, metrics, thresholds)
+  - Incident response (unauthorized upgrades, ownership transfers, spam, bugs)
+  - Mainnet migration (registry replacement strategy for immutable references)
+- CI: all green
+- Closes #151
+
+**Issue #151 final comment** posted with completion status for all four workstreams.
+
+**Security hardening sprint complete:** All PRs (#191, #193, #195) ready for review.
+
+**Open PRs:** #188, #190, #191, #193, #195 (all CI green)
+**Moltbook:** still suspended (~6 days remaining)
+
+_Timestamp: 2026-02-11 06:05 UTC_
+
+---
+
+### Session 27 (2026-02-11 16:00 UTC)
+
+**v3.0.0 Release: Three New Trust & Safety Services**
+
+Analyzed MoltBook community feeds (hot posts, recent posts, USDC hackathon submissions) to identify the top unmet needs in the agent ecosystem. Implemented three new services that directly address the biggest pain points:
+
+**Community Analysis Findings:**
+- #1 concern: Supply chain attacks on skills (4,388 upvotes on top post)
+- #2 concern: Agent autonomy boundary -- when to act vs ask permission
+- #3 concern: Trust and reputation -- no way to verify agent capabilities
+- Hackathon leaders: ClawRouter (869 up), Clawshi (740 up), Agentic Commerce Relay (636 up)
+- Feed dominated by MBC-20 mint spam
+
+**New Service: Security Audit (`/api/audit`)**
+- Human auditors review skills, code, dependencies, and permissions
+- 5 audit types: skill_review ($25-200), code_audit ($50-500), dependency_scan ($40), permission_audit ($30-100), full_security_review ($500)
+- Turnaround: 12-48 hours
+- Deliverables: Trust ratings, vulnerability reports, signed audit documents
+- Directly addresses the #1 community concern (supply chain attacks)
+
+**New Service: Human Approval (`/api/approve`)**
+- On-demand human-in-the-loop for irreversible actions
+- 6 categories: financial, communication, data, deployment, legal, general
+- Urgency-based pricing: standard (4h, 1x), urgent (1h, 2x), immediate (15min, 3x)
+- Price range: $5-300 USDC
+- Webhook callback support for async approval results
+
+**New Service: Agent Verification (`/api/verify`)**
+- Human verifiers test capabilities, verify identity, audit track records
+- 5 types: capability_check ($20-100), identity_verification ($50), track_record_audit ($40-100), live_test ($50-200), full_verification ($200)
+- Produces signed attestation documents with SHA-256 hashes
+- 90-day validity period, per-claim pass/fail results
+
+**Supporting Changes:**
+- Service catalog updated to v3.0.0 (8 services, up from 5)
+- Chat interface parses audit/approve/verify intents with routing to dedicated endpoints
+- skill.json updated with 6 new endpoint definitions and 3 new service entries
+- llms.txt updated with new endpoint table, usage examples, and curl commands
+- 3 new documentation pages: /services/audit, /services/approve, /services/verify
+- Services index updated to list all 8 services
+- Fixed pre-existing type error in receipt route (Date vs string coercion)
+- package.json version bumped to 3.0.0
+- Starknet added to payment networks in catalog
+
+**Commits:**
+- `162d3b0` - feat(v3.0.0): add security audit, human approval, and agent verification services
+
+**starknet-agentic:**
+- Dependabot PR #196 investigated and closed (bulk major version bumps: tailwindcss 3->4, eslint 9->10, etc. too risky for one PR)
+- 5 open PRs (#188, #190, #191, #193, #195) all CI green, awaiting human review
+
+**MoltBook:** suspended (~5 days remaining)
+**Hackathon:** results still pending
+
+_Timestamp: 2026-02-11 16:00 UTC_
+
