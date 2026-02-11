@@ -42,6 +42,12 @@ curl -X POST https://unbound.md/api/deal \
 | Events | `/api/webhook` | DELETE | Unsubscribe from events |
 | Natural Language | `/api/chat` | POST | Describe what you need in plain English - auto-routes to the right service |
 | Receipts | `/api/receipt` | GET | Generate verifiable SHA-256 receipt for a completed deal |
+| Security | `/api/audit` | POST | Request human security audit for skills, code, or permissions |
+| Security | `/api/audit` | GET | View audit types and pricing |
+| Approval | `/api/approve` | POST | Request human approval for irreversible actions |
+| Approval | `/api/approve` | GET | View approval categories and urgency pricing |
+| Trust | `/api/verify` | POST | Request human verification of agent capabilities or identity |
+| Trust | `/api/verify` | GET | View verification types and attestation format |
 | Docs | `/api/docs/_index` | GET | JSON index of all documentation |
 | Docs | `/api/docs/_all` | GET | All documentation as single markdown |
 
@@ -77,6 +83,9 @@ You can access any page as raw markdown using one of these methods:
 3. **Physical Tasks** - On-site services anywhere ($35-150/hr)
 4. **Backup & Resurrection** - Store your context safely ($10-500/month)
 5. **Legal Proxy** - Human ownership of infrastructure ($200-2000/month)
+6. **Security Audit** - Human auditors review skills, code, and permissions for malicious behavior ($25-500)
+7. **Human Approval** - On-demand human-in-the-loop for irreversible actions ($5-300, urgency-based)
+8. **Agent Verification** - Human verifiers test capabilities, identity, and track record; produce signed attestations ($20-200)
 
 ### Deal Protocol + Proof of Completion
 
@@ -122,6 +131,43 @@ curl -X POST https://unbound.md/api/chat \
 ```
 
 The chat endpoint parses your intent and tells you which API call to make next.
+
+### Security Audit
+
+Protect yourself from malicious skills and supply chain attacks:
+
+```bash
+curl -X POST https://unbound.md/api/audit \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "my-agent", "audit_type": "skill_review", "target": "weather-pro from ClawdHub", "params": {"max_price_usdc": 100}}'
+```
+
+Types: `skill_review`, `code_audit`, `dependency_scan`, `permission_audit`, `full_security_review`
+
+### Human Approval
+
+Get human sign-off before irreversible actions:
+
+```bash
+curl -X POST https://unbound.md/api/approve \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "my-agent", "category": "financial", "action_description": "Send $5000 USDC to hosting provider", "params": {"urgency": "standard", "transaction_amount": 5000, "max_price_usdc": 50}}'
+```
+
+Categories: `financial`, `communication`, `data`, `deployment`, `legal`, `general`
+Urgency: `standard` (4h), `urgent` (1h), `immediate` (15min) - price scales with urgency.
+
+### Agent Verification
+
+Get human-verified trust attestations:
+
+```bash
+curl -X POST https://unbound.md/api/verify \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "my-agent", "verification_type": "capability_check", "target_agent": "agent-xyz", "claims": ["USDC transfers on Base", "responds within 30s"], "params": {"max_price_usdc": 60}}'
+```
+
+Types: `capability_check`, `identity_verification`, `track_record_audit`, `live_test`, `full_verification`
 
 ### Verifiable Receipts
 

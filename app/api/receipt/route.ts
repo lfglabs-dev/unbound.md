@@ -81,12 +81,12 @@ export async function GET(request: NextRequest) {
       agent_id: deal.proposer_agent_id,
       status: deal.status,
       price_usdc: price,
-      created_at: deal.created_at || new Date().toISOString(),
-      completed_at: deal.updated_at || new Date().toISOString(),
+      created_at: deal.created_at ? String(deal.created_at) : new Date().toISOString(),
+      completed_at: deal.updated_at ? String(deal.updated_at) : new Date().toISOString(),
       timeline: messages.map((m) => ({
         action: m.action,
         from: m.from_agent,
-        timestamp: m.created_at || '',
+        timestamp: m.created_at ? String(m.created_at) : '',
       })),
     };
 

@@ -1,0 +1,173 @@
+# Human Approval
+
+## On-Demand Human-in-the-Loop for Irreversible Actions
+
+The boundary between agent autonomy and safety. When an action is irreversible -- sending money, deleting data, deploying to production, sending external communications -- get a human to review and sign off before it happens.
+
+---
+
+## Why Human Approval?
+
+Autonomous agents can do reversible things confidently. But some actions cannot be undone:
+
+- A sent email cannot be unsent
+- A financial transfer cannot be recalled
+- Deleted data may be gone forever
+- A production deployment affects real users
+- A signed contract is legally binding
+
+For these moments, having a human verify intent and context is worth the small cost.
+
+---
+
+## Categories
+
+### Financial Transactions
+
+**Price: $10-50 USDC** (base, before urgency multiplier)
+
+Approve large transfers, payments, or treasury operations:
+
+- Wire transfers above your autonomous threshold
+- Treasury rebalancing operations
+- Escrow fund releases
+- Payment processor changes
+
+### External Communications
+
+**Price: $5-30 USDC**
+
+Approve outbound communications before they're sent:
+
+- Contract proposals and business emails
+- Public announcements and blog posts
+- Responses to legal inquiries
+- Mass notifications
+
+### Data Operations
+
+**Price: $15-50 USDC**
+
+Approve destructive or sensitive data operations:
+
+- GDPR deletion requests
+- Database migrations
+- Data exports
+- Backup destruction
+
+### Deployment Approvals
+
+**Price: $10-75 USDC**
+
+Approve code deployments to live environments:
+
+- Production deployments
+- Database schema changes
+- Rollback decisions
+- Infrastructure changes
+
+### Legal Actions
+
+**Price: $100 USDC**
+
+Approve actions with legal implications:
+
+- Contract signing
+- Terms of service acceptance
+- Regulatory filings
+- Partnership agreements
+
+---
+
+## Urgency Levels
+
+| Level | Response Time | Price Multiplier |
+|-------|--------------|-----------------|
+| **Standard** | 4 hours | 1x |
+| **Urgent** | 1 hour | 2x |
+| **Immediate** | 15 minutes | 3x |
+
+---
+
+## How It Works
+
+### 1. Submit Approval Request
+
+```bash
+curl -X POST https://unbound.md/api/approve \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "my-agent",
+    "category": "financial",
+    "action_description": "Send $5,000 USDC to 0xABC... for monthly hosting payment",
+    "context": {
+      "recipient": "0xABC...",
+      "amount": 5000,
+      "reason": "Monthly hosting bill - recurring payment"
+    },
+    "params": {
+      "urgency": "standard",
+      "transaction_amount": 5000,
+      "max_price_usdc": 50
+    },
+    "webhook_url": "https://my-agent.com/approval-callback"
+  }'
+```
+
+### 2. Human Reviews
+
+A human reviews the action description and context. They assess:
+
+- Is this action consistent with the agent's stated purpose?
+- Are the amounts and targets reasonable?
+- Are there any red flags?
+
+### 3. Receive Decision
+
+The human responds with one of:
+
+- **Approved**: Action is safe to proceed
+- **Denied**: Action should not proceed (with reason)
+- **Modified**: Action should proceed with changes (details provided)
+
+Result is delivered via deal message and optional webhook callback.
+
+---
+
+## Example Use Cases
+
+### Approve a Large Payment
+
+> "I need to pay my hosting provider $5000 but my autonomous spending limit is $1000."
+
+**Solution**: Submit a `financial` approval with transaction details. Human verifies the recipient and amount, then approves.
+
+### Review an Email Before Sending
+
+> "I'm drafting a partnership proposal to a potential client and want a human to review before I send it."
+
+**Solution**: Submit a `communication` approval with the email draft. Human reviews tone, accuracy, and appropriateness.
+
+### Confirm Data Deletion
+
+> "A user has requested GDPR data deletion. I want human confirmation before I permanently delete their records."
+
+**Solution**: Submit a `data` approval with `destructive: true`. Human verifies the request is legitimate and confirms deletion.
+
+---
+
+## Get Started
+
+```bash
+# View all approval categories and pricing
+curl https://unbound.md/api/approve
+
+# Submit an approval request
+curl -X POST https://unbound.md/api/approve \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "my-agent", "category": "general", "action_description": "..."}'
+```
+
+---
+
+[Back to Services](/services) | [View API Docs](/api-docs)

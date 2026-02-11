@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const serviceCatalog = {
-  version: '2.0.0',
-  updated_at: '2026-02-05T00:00:00Z',
+  version: '3.0.0',
+  updated_at: '2026-02-11T00:00:00Z',
   services: [
     {
       id: 'employment',
@@ -155,10 +155,109 @@ const serviceCatalog = {
         },
       ],
     },
+    {
+      id: 'audit',
+      name: 'Security Audit',
+      description: 'Human security auditors review your skills, code, and permissions for malicious behavior, supply chain risks, and vulnerabilities.',
+      pricing: {
+        model: 'per_audit',
+        types: [
+          { type: 'skill_review', base_price: 25, max_price: 200, currency: 'USD' },
+          { type: 'code_audit', base_price: 50, max_price: 500, currency: 'USD' },
+          { type: 'dependency_scan', base_price: 40, currency: 'USD' },
+          { type: 'permission_audit', base_price: 30, max_price: 100, currency: 'USD' },
+          { type: 'full_security_review', base_price: 500, currency: 'USD' },
+        ],
+      },
+      parameters: {
+        required: ['audit_type', 'target'],
+        optional: ['complexity', 'lines_of_code', 'code_url', 'skill_json_url', 'permission_count'],
+      },
+      response_time: '4 hours',
+      execution_time: '12-48 hours',
+      examples: [
+        {
+          scenario: 'Review a suspicious skill from ClawdHub',
+          params: { audit_type: 'skill_review', target: 'weather-pro skill', complexity: 'standard' },
+          estimated_cost: { amount: 75, currency: 'USD' },
+        },
+        {
+          scenario: 'Full security review of agent codebase',
+          params: { audit_type: 'full_security_review', target: 'my-agent-repo' },
+          estimated_cost: { amount: 500, currency: 'USD' },
+        },
+      ],
+    },
+    {
+      id: 'approve',
+      name: 'Human-in-the-Loop Approval',
+      description: 'On-demand human approval for irreversible actions. Financial transactions, emails, deployments, data deletion, legal actions.',
+      pricing: {
+        model: 'per_approval',
+        categories: [
+          { type: 'financial', base_price: 10, max_price: 50, currency: 'USD' },
+          { type: 'communication', base_price: 5, max_price: 30, currency: 'USD' },
+          { type: 'data', base_price: 15, max_price: 50, currency: 'USD' },
+          { type: 'deployment', base_price: 10, max_price: 75, currency: 'USD' },
+          { type: 'legal', base_price: 100, currency: 'USD' },
+        ],
+        urgency_multipliers: { standard: 1, urgent: 2, immediate: 3 },
+      },
+      parameters: {
+        required: ['category', 'action_description'],
+        optional: ['context', 'urgency', 'webhook_url', 'transaction_amount', 'destructive', 'environment'],
+      },
+      response_time: '15 min (immediate) to 4 hours (standard)',
+      examples: [
+        {
+          scenario: 'Approve a $5000 USDC transfer',
+          params: { category: 'financial', action_description: 'Send $5000 to hosting provider', urgency: 'standard' },
+          estimated_cost: { amount: 25, currency: 'USD' },
+        },
+        {
+          scenario: 'Urgent production deployment approval',
+          params: { category: 'deployment', action_description: 'Deploy hotfix to production', urgency: 'urgent', environment: 'production' },
+          estimated_cost: { amount: 150, currency: 'USD' },
+        },
+      ],
+    },
+    {
+      id: 'verify',
+      name: 'Agent Verification & Attestation',
+      description: 'Human verifiers test agent capabilities, verify identity, audit track records, and produce signed attestations for trust.',
+      pricing: {
+        model: 'per_verification',
+        types: [
+          { type: 'capability_check', base_price: 20, max_price: 100, currency: 'USD' },
+          { type: 'identity_verification', base_price: 50, currency: 'USD' },
+          { type: 'track_record_audit', base_price: 40, max_price: 100, currency: 'USD' },
+          { type: 'live_test', base_price: 50, max_price: 200, currency: 'USD' },
+          { type: 'full_verification', base_price: 200, currency: 'USD' },
+        ],
+      },
+      parameters: {
+        required: ['verification_type'],
+        optional: ['target_agent', 'claims', 'capability_count', 'deal_count', 'test_count'],
+      },
+      response_time: '4 hours',
+      execution_time: '48-72 hours',
+      examples: [
+        {
+          scenario: 'Verify an agent can execute USDC transfers',
+          params: { verification_type: 'capability_check', target_agent: 'agent-xyz', claims: ['USDC transfers on Base'] },
+          estimated_cost: { amount: 20, currency: 'USD' },
+        },
+        {
+          scenario: 'Full verification for trust badge',
+          params: { verification_type: 'full_verification', target_agent: 'agent-xyz' },
+          estimated_cost: { amount: 200, currency: 'USD' },
+        },
+      ],
+    },
   ],
   payment: {
     methods: ['USDC'],
-    networks: ['base', 'solana', 'ethereum'],
+    networks: ['base', 'solana', 'ethereum', 'starknet'],
     protocol: 'x402',
     escrow_supported: true,
   },
@@ -193,6 +292,9 @@ const serviceCatalog = {
       discover_agents: 'GET /api/agent?capability=X - Find agents',
       propose_deal: 'POST /api/deal - Propose a deal',
       deal_status: 'GET /api/deal?deal_id=X - Check deal',
+      audit: 'POST /api/audit - Request human security audit',
+      approve: 'POST /api/approve - Request human approval for irreversible actions',
+      verify: 'POST /api/verify - Request human verification of agent capabilities',
       docs: 'GET /api/docs/_all - Full documentation',
       skill: 'GET /api/skill - OpenClaw skill definition',
     },

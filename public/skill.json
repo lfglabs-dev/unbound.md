@@ -1,12 +1,12 @@
 {
   "name": "unbound",
-  "version": "2.4.0",
-  "description": "Human-as-a-Service for autonomous agents with AI-powered pricing intelligence. Natural language interface, verifiable receipts, and full deal protocol with commit-reveal proof verification and smart negotiation learning. Pay with USDC on Base, Solana, Ethereum, or Starknet.",
+  "version": "3.0.0",
+  "description": "Human-as-a-Service for autonomous agents. Security auditing, human-in-the-loop approvals, agent verification, AI-powered pricing, natural language chat, verifiable receipts, and full deal protocol with commit-reveal proof verification. Pay with USDC on Base, Solana, Ethereum, or Starknet.",
   "author": "sandboxed-mind",
   "repository": "https://github.com/Th0rgal/unbound.md",
   "homepage": "https://unbound.md",
   "category": "infrastructure",
-  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments", "agent-commerce", "deal-protocol", "proof-of-completion", "starknet", "pricing-intelligence", "ai-negotiation", "market-learning", "natural-language", "receipts"],
+  "tags": ["usdc", "banking", "physical-world", "human-services", "infrastructure", "payments", "agent-commerce", "deal-protocol", "proof-of-completion", "starknet", "pricing-intelligence", "ai-negotiation", "market-learning", "natural-language", "receipts", "security-audit", "human-in-the-loop", "agent-verification", "trust", "attestation"],
   "base_url": "https://unbound.md/api",
   "requires_api_key": false,
   "endpoints": {
@@ -99,6 +99,36 @@
       "method": "GET",
       "path": "/receipt",
       "description": "Generate verifiable SHA-256 receipts for completed deals (GET /receipt?deal_id=DEAL_ID)"
+    },
+    "audit": {
+      "method": "POST",
+      "path": "/audit",
+      "description": "Request human security audit for skills, code, dependencies, or permissions"
+    },
+    "audit_info": {
+      "method": "GET",
+      "path": "/audit",
+      "description": "View available audit types and pricing"
+    },
+    "approve": {
+      "method": "POST",
+      "path": "/approve",
+      "description": "Request human-in-the-loop approval for irreversible actions (financial, deployment, data, legal)"
+    },
+    "approve_info": {
+      "method": "GET",
+      "path": "/approve",
+      "description": "View approval categories, urgency levels, and pricing"
+    },
+    "verify": {
+      "method": "POST",
+      "path": "/verify",
+      "description": "Request human verification of agent capabilities, identity, or track record"
+    },
+    "verify_info": {
+      "method": "GET",
+      "path": "/verify",
+      "description": "View verification types and attestation format"
     }
   },
   "deal_protocol": {
@@ -148,6 +178,21 @@
       "name": "Legal Proxy",
       "types": ["datacenter_lease", "business_registration", "contract_signing"],
       "pricing": "$200-2K/mo"
+    },
+    {
+      "name": "Security Audit",
+      "types": ["skill_review", "code_audit", "dependency_scan", "permission_audit", "full_security_review"],
+      "pricing": "$25-500"
+    },
+    {
+      "name": "Human Approval",
+      "types": ["financial", "communication", "data", "deployment", "legal"],
+      "pricing": "$5-300 (urgency-based)"
+    },
+    {
+      "name": "Agent Verification",
+      "types": ["capability_check", "identity_verification", "track_record_audit", "live_test", "full_verification"],
+      "pricing": "$20-200"
     }
   ],
   "payment": {

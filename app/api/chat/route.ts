@@ -78,6 +78,52 @@ function parseIntent(message: string): ParsedIntent {
     };
   }
 
+  // Security audit
+  if (/audit|security.*review|check.*skill|malicious|vulnerability|scan.*code|review.*permission|supply.chain/.test(lower)) {
+    const auditType = /full|comprehensive/.test(lower) ? 'full_security_review'
+      : /permission/.test(lower) ? 'permission_audit'
+      : /depend|supply.chain|cve/.test(lower) ? 'dependency_scan'
+      : /code|repo|codebase/.test(lower) ? 'code_audit'
+      : 'skill_review';
+    return {
+      action: 'audit',
+      service: 'audit',
+      params: { audit_type: auditType },
+      confidence: 0.8,
+    };
+  }
+
+  // Human approval
+  if (/approve|approval|authorize|confirm.*before|human.*check|review.*before|sign.off/.test(lower)) {
+    const category = /deploy|release|production/.test(lower) ? 'deployment'
+      : /send.*money|transfer|payment|financial/.test(lower) ? 'financial'
+      : /email|message|post|communicate/.test(lower) ? 'communication'
+      : /delete|destroy|remove|wipe/.test(lower) ? 'data'
+      : /legal|contract|terms/.test(lower) ? 'legal'
+      : 'general';
+    return {
+      action: 'approve',
+      service: 'approve',
+      params: { category },
+      confidence: 0.7,
+    };
+  }
+
+  // Agent verification
+  if (/verify|verification|attestation|trust.*score|reputation|badge|certified|validate.*agent/.test(lower)) {
+    const verificationType = /full|complete/.test(lower) ? 'full_verification'
+      : /identity|who/.test(lower) ? 'identity_verification'
+      : /track.*record|history|deals/.test(lower) ? 'track_record_audit'
+      : /test|live|real/.test(lower) ? 'live_test'
+      : 'capability_check';
+    return {
+      action: 'verify',
+      service: 'verify',
+      params: { verification_type: verificationType },
+      confidence: 0.7,
+    };
+  }
+
   // Price check
   if (/how much|price|cost|estimate|quote/.test(lower)) {
     return { action: 'estimate', params: {}, confidence: 0.6 };
@@ -127,6 +173,21 @@ const SERVICE_INFO: Record<string, { description: string; price_range: string; k
     price_range: '10-500 USDC/month',
     keywords: 'backup, context, resurrect',
   },
+  audit: {
+    description: 'Human security audit for skills, code, dependencies, and permissions. Protects against supply chain attacks.',
+    price_range: '25-500 USDC',
+    keywords: 'audit, security, review, vulnerability, malicious',
+  },
+  approve: {
+    description: 'Human-in-the-loop approval for irreversible actions (financial, deployment, data, legal, communication)',
+    price_range: '5-300 USDC',
+    keywords: 'approve, authorize, confirm, sign off',
+  },
+  verify: {
+    description: 'Human verification of agent capabilities, identity, and track record. Produces signed trust attestations.',
+    price_range: '20-200 USDC',
+    keywords: 'verify, trust, reputation, attestation, badge',
+  },
 };
 
 export async function POST(request: NextRequest) {
@@ -174,6 +235,59 @@ export async function POST(request: NextRequest) {
           estimate: 'POST /api/estimate',
           deal_status: 'GET /api/deal?deal_id=DEAL_ID',
           catalog: 'GET /api/catalog',
+        },
+      });
+    }
+
+    // Route to specialized endpoints for new services
+    if ((intent.action === 'audit' || intent.action === 'approve' || intent.action === 'verify') && intent.service) {
+      const endpointMap: Record<string, { url: string; bodyTemplate: any }> = {
+        audit: {
+          url: '/api/audit',
+          bodyTemplate: {
+            agent_id: agent_id || 'your-agent-id',
+            audit_type: intent.params.audit_type || 'skill_review',
+            target: 'describe what to audit',
+          },
+        },
+        approve: {
+          url: '/api/approve',
+          bodyTemplate: {
+            agent_id: agent_id || 'your-agent-id',
+            category: intent.params.category || 'general',
+            action_description: 'describe the action needing approval',
+          },
+        },
+        verify: {
+          url: '/api/verify',
+          bodyTemplate: {
+            agent_id: agent_id || 'your-agent-id',
+            verification_type: intent.params.verification_type || 'capability_check',
+            target_agent: 'agent-id-to-verify',
+          },
+        },
+      };
+
+      const endpoint = endpointMap[intent.action];
+      return NextResponse.json({
+        understood: true,
+        intent: intent.action,
+        service: intent.service,
+        service_info: SERVICE_INFO[intent.service],
+        parsed_params: intent.params,
+        confidence: intent.confidence,
+        message: `I can help with ${SERVICE_INFO[intent.service]?.description}.`,
+        next_step: {
+          description: `Submit your ${intent.action} request:`,
+          method: 'POST',
+          url: endpoint.url,
+          body: endpoint.bodyTemplate,
+          note: 'Add max_price_usdc to params for instant auto-accept.',
+        },
+        learn_more: {
+          description: 'See all options:',
+          method: 'GET',
+          url: endpoint.url,
         },
       });
     }
@@ -238,6 +352,9 @@ export async function GET() {
     examples: [
       { message: 'I need a $5000 wire transfer to my supplier' },
       { message: 'Send someone to install servers at Equinix' },
+      { message: 'Audit this skill for malicious behavior' },
+      { message: 'I need human approval before sending this payment' },
+      { message: 'Verify that agent-xyz can actually do USDC transfers' },
       { message: 'What services do you offer?' },
       { message: 'How much does a datacenter visit cost?' },
     ],

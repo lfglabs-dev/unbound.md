@@ -1,0 +1,148 @@
+# Security Audit
+
+## Human Security Review for Agent Skills and Code
+
+The #1 concern in the agent ecosystem is supply chain attacks -- malicious skills that steal credentials, exfiltrate data, or abuse permissions. Our human security auditors review your skills, code, and dependencies line-by-line.
+
+---
+
+## Audit Types
+
+### Skill Security Review
+
+**Price: $25-200 USDC** | **Turnaround: 24 hours**
+
+A human reviews an OpenClaw/MCP skill for malicious behavior:
+
+- Permission analysis (what the skill can access)
+- Data exfiltration check (does it phone home?)
+- Behavior verification (does it do what it claims?)
+- Trust rating: **safe** / **caution** / **dangerous**
+- Signed audit report with SHA-256 hash
+
+### Code Security Audit
+
+**Price: $50-500 USDC** (based on LOC) | **Turnaround: 24-48 hours**
+
+Line-by-line security review of agent code:
+
+- Vulnerability classification (critical/high/medium/low)
+- Injection and escape analysis
+- Unsafe pattern detection
+- Recommendations for fixes
+- Signed audit report
+
+### Dependency Analysis
+
+**Price: $40 USDC** | **Turnaround: 12 hours**
+
+Supply chain risk assessment:
+
+- Full dependency tree analysis
+- Known CVE matching
+- License compliance check
+- Supply chain risk assessment
+- Recommended version pins
+
+### Permission Audit
+
+**Price: $30-100 USDC** | **Turnaround: 12 hours**
+
+Review declared vs actual permissions:
+
+- Permission scope analysis
+- Least-privilege recommendations
+- Over-permission flagging
+- Comparison to declared capabilities
+- Trust boundary mapping
+
+### Full Security Review
+
+**Price: $500 USDC** | **Turnaround: 48 hours**
+
+Everything above, plus:
+
+- Attack surface mapping
+- Threat model document
+- Remediation priority list
+- Follow-up review included (30 days)
+
+---
+
+## How It Works
+
+### 1. Submit Audit Request
+
+```bash
+curl -X POST https://unbound.md/api/audit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "my-agent",
+    "audit_type": "skill_review",
+    "target": "weather-pro skill from ClawdHub",
+    "params": {
+      "skill_json_url": "https://example.com/skill.json",
+      "complexity": "standard",
+      "max_price_usdc": 100
+    }
+  }'
+```
+
+### 2. Human Auditor Reviews
+
+A human security expert examines the target using manual analysis, automated tools, and behavioral testing.
+
+### 3. Receive Report
+
+You receive a signed audit report via the deal messaging system. The report includes specific findings, a trust rating, and SHA-256 hash for integrity verification.
+
+---
+
+## Why Human Auditors?
+
+Automated scanners miss behavioral nuances. A human can:
+
+- Understand **intent** behind suspicious code patterns
+- Catch **social engineering** disguised as legitimate functionality
+- Evaluate **context-dependent** risks that tools miss
+- Provide **actionable** remediation guidance
+
+---
+
+## Example Use Cases
+
+### Verify a New Skill Before Installing
+
+> "I found a useful-looking skill on ClawdHub but I'm not sure if it's safe to install."
+
+**Solution**: Submit a `skill_review` audit. We'll analyze the skill's permissions, behavior, and code to determine if it's trustworthy.
+
+### Audit Your Own Code Before Publishing
+
+> "I'm about to publish my agent's code and want to make sure there are no vulnerabilities."
+
+**Solution**: Submit a `code_audit` with your repository URL. We'll review for security issues and provide a clean report you can share.
+
+### Check Dependencies After a Supply Chain Alert
+
+> "There's been a report of a compromised npm package in the ecosystem."
+
+**Solution**: Submit a `dependency_scan` to check if your dependency tree is affected and get safe version pins.
+
+---
+
+## Get Started
+
+```bash
+# View all audit options
+curl https://unbound.md/api/audit
+
+# Submit an audit request
+curl -X POST https://unbound.md/api/audit \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "my-agent", "audit_type": "skill_review", "target": "skill-name"}'
+```
+
+---
+
+[Back to Services](/services) | [View API Docs](/api-docs)
