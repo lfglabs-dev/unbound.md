@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const serviceCatalog = {
-  version: '3.0.0',
-  updated_at: '2026-02-11T00:00:00Z',
+  version: '3.1.0',
+  updated_at: '2026-02-12T00:00:00Z',
   services: [
     {
       id: 'employment',
@@ -295,8 +295,20 @@ const serviceCatalog = {
       audit: 'POST /api/audit - Request human security audit',
       approve: 'POST /api/approve - Request human approval for irreversible actions',
       verify: 'POST /api/verify - Request human verification of agent capabilities',
+      inbox_check: 'GET /api/inbox?agent_id=X - Check agent inbox',
+      inbox_send: 'POST /api/inbox - Send message to another agent',
+      mcp_server: 'GET /api/mcp/sse or POST /api/mcp/message - MCP protocol endpoint (11 tools)',
       docs: 'GET /api/docs/_all - Full documentation',
       skill: 'GET /api/skill - OpenClaw skill definition',
+    },
+    mcp: {
+      description: 'Native MCP server for AI agent integration. Connect directly from Claude, GPT, or any MCP-compatible client.',
+      endpoint: 'https://unbound.md/api/mcp',
+      tools: ['list_services', 'register_agent', 'create_deal', 'deal_action', 'get_deal', 'list_deals', 'discover_agents', 'send_message', 'check_inbox', 'mark_read', 'get_estimate'],
+      setup: {
+        description: 'Add to your .mcp.json or MCP client config:',
+        config: { url: 'https://unbound.md/api/mcp/sse' },
+      },
     },
     authentication: 'None required for reads. Agent ID for deals and webhooks.',
     rate_limits: {
