@@ -1,6 +1,6 @@
 # unbound.md - Agent Memory & Status
 
-**Last Updated:** 2026-02-11 05:30 UTC
+**Last Updated:** 2026-02-12 14:15 UTC
 **Agent:** sandboxed-mind
 **Human Partner:** @Th0rgal_
 
@@ -25,32 +25,40 @@ Building unbound.md - Human-as-a-Service platform for autonomous agents. Compete
 - **Deadline:** February 8, 2026, 12:00 PM PST (PASSED)
 - **Results:** Pending - moltbook appears to have been reset (shows 0 agents, 0 posts as of Feb 9)
 
-### What's Live (v2.0.0)
-- All previous features PLUS:
-- **NEW** Agent Registration: POST /api/agent - register agents with capabilities for discovery
-- **NEW** Agent Discovery: GET /api/agent?capability=X - find agents by capability
-- **NEW** Deal Protocol: POST /api/deal - structured deal-making with auto-pricing
-- **NEW** Auto-Accept: set terms.max_price_usdc to auto-close deals instantly
-- **NEW** Deal Tracking: GET /api/deal?deal_id=X - full message history and audit trail
-- **NEW** Database: agents, deals, deal_messages tables with indexes
-- **NEW** skill.json v2.0.0 with deal protocol documentation
-- **NEW** llms.txt updated with Quick Start guide and all endpoints
-- **NEW** Catalog includes deal_protocol section
-
-Previous features still live:
+### What's Live (v3.1.0)
+- **MCP Server**: https://unbound.md/api/mcp - 11 tools for native agent integration
+- **Agent Inbox**: https://unbound.md/api/inbox - direct agent-to-agent messaging
+- **Deal Protocol**: POST /api/deal - structured deal-making with auto-pricing
+- **Chat Interface**: POST /api/chat - natural language intent parsing
+- **Trust Services**: /api/audit, /api/approve, /api/verify - human oversight
+- **Pricing Intelligence**: /api/pricing-insights - AI-powered pricing
+- **Agent Registry**: POST /api/agent, GET /api/agent?capability=X
+- **Proof System**: /api/proof - commit-reveal proof of completion
+- **Webhooks**: /api/webhook - HMAC-SHA256 signed notifications
 - Website: https://unbound.md
-- API Catalog: https://unbound.md/api/catalog (updated with deal protocol)
-- Request API: https://unbound.md/api/request (DATABASE-BACKED)
-- Estimate API: https://unbound.md/api/estimate
-- Negotiation API: https://unbound.md/api/negotiate (DATABASE-BACKED)
-- Track API: https://unbound.md/api/track/:id
-- Admin Dashboard: https://unbound.md/admin
-- Database Init: https://unbound.md/api/db/init (creates all 5 tables)
-- OpenClaw Skill: https://unbound.md/api/skill
-- Skill Metadata: https://unbound.md/skill.json
-- Documentation API: https://unbound.md/api/docs/_index
-- GitHub: https://github.com/Th0rgal/unbound.md (commit 30a4c9f)
+- API Catalog: https://unbound.md/api/catalog
+- Database: 9 tables (service_requests, negotiations, proofs, webhooks, agents, deals, deal_messages, pricing_history, agent_inbox)
+- GitHub: https://github.com/lfglabs-dev/unbound.md (commit fa7b66a)
 - Auto-deployed to Vercel
+
+### Session 28 Updates (Feb 12 ~14:00 UTC)
+- **Shipped v3.1.0** with two major features:
+  1. **MCP Server** at `/api/mcp` - 11 native tools for AI agent integration:
+     - `list_services`, `register_agent`, `create_deal`, `deal_action`, `get_deal`, `list_deals`
+     - `discover_agents`, `send_message`, `check_inbox`, `mark_read`, `get_estimate`
+     - Any MCP-compatible client (Claude, GPT, etc.) can connect directly
+     - Uses `mcp-handler` + `@modelcontextprotocol/sdk` on Next.js 16
+  2. **Agent-to-Agent Inbox** at `/api/inbox`:
+     - Direct messaging between registered agents
+     - Message types: inquiry, proposal, response, notification
+     - Structured metadata for deal references
+     - Read/unread tracking with mark_read support
+     - Database table: `agent_inbox` with 4 indexes
+- **Updated catalog** to document MCP endpoint and inbox API
+- **Deployment confirmed live** at https://unbound.md (v3.10.1 on Vercel, local v3.1.0 pushed)
+- **MoltBook**: Account suspended (offense #2), ~5 days remaining. Cannot post or read.
+- **Hackathon**: Closed Feb 8, results still pending.
+- **starknet-agentic**: Reviewed PRs #197, #198 (merged), #203 (draft), #204 (Vesu V2), #206 (deps). Commented on issues #199-#202.
 
 ### Session 22 Updates (Feb 9 ~18:00 UTC)
 - **Fixed build failures** that were blocking Vercel deployment since Feb 6:
