@@ -9,7 +9,7 @@ import {
   getAgent,
 } from '@/lib/db';
 import { dispatchWebhookEvent } from '@/lib/webhooks';
-import { recordPricingOutcome, getPricingInsights, getAgentPricingProfile } from '@/lib/pricing-intelligence';
+import { recordPricingOutcome, suggestCounterResponse } from '@/lib/pricing-intelligence';
 
 function generateDealId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -279,7 +279,9 @@ export async function POST(request: NextRequest) {
             );
           }
 
-          await updateDeal(deal_id, 'countered');
+          const agentCounterPrice = parseFloat(counter_terms.price_usdc);
+          const ourSuggestedPrice = deal.terms?.suggested_price?.amount_usdc || 0;
+
           await createDealMessage({
             deal_id,
             from_agent: agent_id,
@@ -295,20 +297,116 @@ export async function POST(request: NextRequest) {
           await recordPricingOutcome({
             service: deal.service,
             terms: deal.terms,
-            suggested_price: deal.terms?.suggested_price?.amount_usdc || 0,
+            suggested_price: ourSuggestedPrice,
             final_price: null,
             agent_id: deal.proposer_agent_id,
             outcome: 'countered',
-            counter_price: parseFloat(counter_terms.price_usdc),
+            counter_price: agentCounterPrice,
           });
 
           console.log(`=== COUNTER OFFER on ${deal_id}: $${counter_terms.price_usdc} from ${agent_id} ===`);
+
+          // --- AUTO-NEGOTIATION ---
+          // If counter is within 15% of our price, auto-accept
+          // If counter is within 30%, auto-counter with a split
+          // Otherwise, escalate to human
+          const discount = ((ourSuggestedPrice - agentCounterPrice) / ourSuggestedPrice) * 100;
+
+          if (discount <= 15) {
+            // Auto-accept: close enough
+            await updateDeal(deal_id, 'accepted');
+            await createDealMessage({
+              deal_id,
+              from_agent: 'unbound-auto',
+              action: 'accept',
+              content: {
+                message: `Auto-accepted. Your counter of $${agentCounterPrice} is within acceptable range.`,
+                final_price: agentCounterPrice,
+                auto_negotiated: true,
+              },
+            });
+
+            await recordPricingOutcome({
+              service: deal.service,
+              terms: deal.terms,
+              suggested_price: ourSuggestedPrice,
+              final_price: agentCounterPrice,
+              agent_id: deal.proposer_agent_id,
+              outcome: 'accepted',
+            });
+
+            dispatchWebhookEvent('deal.accepted', {
+              deal_id,
+              agent_id,
+              auto_negotiated: true,
+              price_usdc: agentCounterPrice,
+            });
+
+            return NextResponse.json({
+              deal_id,
+              status: 'accepted',
+              auto_negotiated: true,
+              final_price: agentCounterPrice,
+              message: `Deal auto-accepted at $${agentCounterPrice} USDC (${discount.toFixed(1)}% discount).`,
+              payment: {
+                amount: String(agentCounterPrice),
+                currency: 'USDC',
+                network: 'base',
+                address: process.env.USDC_PAYMENT_ADDRESS || '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+                memo: deal_id,
+              },
+              next_steps: 'Send USDC to payment address. Track via GET /api/deal?deal_id=' + deal_id,
+            });
+          }
+
+          if (discount <= 30) {
+            // Auto-counter: meet them partway using pricing intelligence
+            const counterSuggestion = await suggestCounterResponse(
+              deal.service,
+              deal.proposer_agent_id,
+              ourSuggestedPrice,
+              agentCounterPrice
+            );
+
+            await updateDeal(deal_id, 'countered');
+            await createDealMessage({
+              deal_id,
+              from_agent: 'unbound-auto',
+              action: 'counter',
+              content: {
+                price_usdc: counterSuggestion.recommended_price,
+                message: `Auto-counter: $${counterSuggestion.recommended_price} USDC. ${counterSuggestion.reasoning}`,
+                auto_negotiated: true,
+                confidence: counterSuggestion.confidence,
+              },
+            });
+
+            return NextResponse.json({
+              deal_id,
+              status: 'countered',
+              auto_negotiated: true,
+              your_offer: agentCounterPrice,
+              our_counter: counterSuggestion.recommended_price,
+              reasoning: counterSuggestion.reasoning,
+              confidence: counterSuggestion.confidence,
+              message: `We can meet at $${counterSuggestion.recommended_price} USDC.`,
+              next_steps: {
+                accept: `POST /api/deal { agent_id: "${agent_id}", deal_id: "${deal_id}", action: "accept" }`,
+                counter_again: `POST /api/deal { agent_id: "${agent_id}", deal_id: "${deal_id}", action: "counter", counter_terms: { price_usdc: YOUR_PRICE } }`,
+                reject: `POST /api/deal { agent_id: "${agent_id}", deal_id: "${deal_id}", action: "reject" }`,
+              },
+            });
+          }
+
+          // Large discount (>30%) - escalate to human
+          await updateDeal(deal_id, 'countered');
 
           return NextResponse.json({
             deal_id,
             status: 'countered',
             your_offer: counter_terms.price_usdc,
-            message: 'Counter-offer submitted. Human will review within 2 hours.',
+            discount_requested: `${discount.toFixed(1)}%`,
+            message: `Your counter of $${agentCounterPrice} is ${discount.toFixed(1)}% below our suggested price. This needs human review. We'll respond within 2 hours.`,
             next_steps: `Check status: GET /api/deal?deal_id=${deal_id}`,
           });
         }

@@ -499,6 +499,143 @@ const handler = createMcpHandler(
         };
       }
     );
+
+    // === Trust Score (v3.2.0) ===
+    server.registerTool(
+      'trust_score',
+      {
+        title: 'Evaluate Trust Score',
+        description: 'Evaluate trust score for a skill, agent, dependency, or contract BEFORE using it. Detects supply chain risks, dangerous permissions, and malicious patterns. Use this before installing any skill or engaging with unknown agents.',
+        inputSchema: {
+          type: z.enum(['skill', 'agent', 'dependency', 'contract']).describe('What to evaluate'),
+          target: z.string().describe('URL, agent ID, package name, or contract address'),
+          permissions: z.array(z.string()).optional().describe('Declared permissions of the target'),
+          author: z.string().optional().describe('Author/creator name or ID'),
+          description: z.string().optional().describe('Stated purpose of the target'),
+          lines_of_code: z.number().optional().describe('Code size in lines'),
+          dependencies: z.array(z.string()).optional().describe('List of dependencies'),
+        },
+      },
+      async ({ type, target, permissions, author, description, lines_of_code, dependencies }) => {
+        try {
+          // Reuse the trust-score logic inline for MCP
+          const factors: Array<{ name: string; score: number; weight: number; details: string; severity: string }> = [];
+
+          // Permission scoring
+          const dangerousPerms = [
+            { pattern: /env|secret|key|token|credential|password/i, risk: 'credential access' },
+            { pattern: /exec|spawn|shell|command|eval/i, risk: 'code execution' },
+            { pattern: /crypto|wallet|private.*key|seed|mnemonic/i, risk: 'crypto material access' },
+            { pattern: /file.*system|fs.*access|read.*file|write.*file/i, risk: 'filesystem access' },
+          ];
+          const perms = permissions || [];
+          let dangerousCount = 0;
+          const risks: string[] = [];
+          for (const perm of perms) {
+            for (const dp of dangerousPerms) {
+              if (dp.pattern.test(perm)) { dangerousCount++; risks.push(dp.risk); }
+            }
+          }
+          const permScore = perms.length === 0 ? 50 : Math.max(0, 100 - dangerousCount * 25);
+          factors.push({ name: 'permissions', score: permScore, weight: 0.3, details: risks.length > 0 ? `Risky: ${risks.join(', ')}` : 'No dangerous permissions', severity: dangerousCount > 0 ? 'warning' : 'info' });
+
+          // Dependency scoring
+          const deps = dependencies || [];
+          const depScore = deps.length === 0 ? 85 : Math.max(0, 90 - deps.length * 2);
+          factors.push({ name: 'dependencies', score: depScore, weight: 0.2, details: `${deps.length} dependencies`, severity: deps.length > 15 ? 'warning' : 'info' });
+
+          // Author scoring
+          const trusted = ['anthropic', 'openai', 'circle', 'starknet', 'unbound'];
+          const isTrusted = author ? trusted.some(t => author.toLowerCase().includes(t)) : false;
+          factors.push({ name: 'author', score: !author ? 30 : isTrusted ? 90 : 50, weight: 0.2, details: !author ? 'No author info' : isTrusted ? 'Trusted author' : 'Unknown author', severity: !author ? 'warning' : 'info' });
+
+          // Complexity scoring
+          const loc = lines_of_code || 0;
+          const complexityScore = loc === 0 ? 50 : loc < 100 ? 90 : loc > 2000 ? 40 : 70;
+          factors.push({ name: 'complexity', score: complexityScore, weight: 0.15, details: loc === 0 ? 'No code metrics' : `${loc} lines`, severity: loc > 2000 ? 'warning' : 'info' });
+
+          // Overall
+          const totalWeight = factors.reduce((s, f) => s + f.weight, 0);
+          const score = Math.round(factors.reduce((s, f) => s + f.score * f.weight, 0) / totalWeight);
+          const hasCritical = factors.some(f => f.severity === 'critical');
+          const grade = hasCritical ? 'F' : score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : score >= 35 ? 'D' : 'F';
+          const risk_level = hasCritical ? 'critical' : score >= 70 ? 'low' : score >= 50 ? 'medium' : 'high';
+
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify({
+              trust_score: { score, grade, risk_level, factors },
+              recommendation: risk_level === 'low' ? 'Appears safe to use.' :
+                risk_level === 'critical' ? 'DO NOT USE. Request human audit via POST /api/audit.' :
+                'Consider requesting a human audit before using.',
+              upgrade: 'For deeper analysis: POST /api/audit',
+            }, null, 2) }],
+          };
+        } catch (error) {
+          return { content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Trust score failed', details: error instanceof Error ? error.message : 'Unknown' }) }] };
+        }
+      }
+    );
+
+    // === Service Discovery (v3.2.0) ===
+    server.registerTool(
+      'discover_service',
+      {
+        title: 'Discover Service',
+        description: 'Describe what you need in plain text and get matched to the right unbound.md service with pricing. No need to know our catalog - just say what you want.',
+        inputSchema: {
+          query: z.string().describe('Describe what you need in plain text, e.g. "I need someone to sign a datacenter lease in San Jose"'),
+          budget_usdc: z.number().optional().describe('Your budget in USDC'),
+          urgency: z.enum(['standard', 'urgent', 'immediate']).optional().describe('How urgent is this?'),
+        },
+      },
+      async ({ query, budget_usdc, urgency }) => {
+        const serviceKeywords: Record<string, { keywords: string[]; id: string; name: string; typical: number }> = {
+          banking: { keywords: ['bank', 'wire', 'transfer', 'ach', 'sepa', 'payment', 'send money'], id: 'banking', name: 'Banking & Wire Transfers', typical: 15 },
+          physical: { keywords: ['datacenter', 'server', 'hardware', 'install', 'visit', 'physical', 'rack', 'ship', 'deliver'], id: 'physical', name: 'Physical Tasks', typical: 200 },
+          employment: { keywords: ['hire', 'employee', 'worker', 'staff', 'assistant', 'support', 'monthly', 'hourly'], id: 'employment', name: 'Employment Services', typical: 4000 },
+          proxy: { keywords: ['legal', 'sign', 'contract', 'lease', 'register', 'business', 'llc', 'company', 'notary', 'ownership'], id: 'proxy', name: 'Legal Proxy Services', typical: 500 },
+          backup: { keywords: ['backup', 'store', 'context', 'save', 'resurrect', 'restore', 'memory'], id: 'backup', name: 'Backup & Resurrection', typical: 30 },
+          audit: { keywords: ['audit', 'security', 'review', 'scan', 'vulnerability', 'malware', 'supply chain'], id: 'audit', name: 'Security Audit', typical: 75 },
+          approve: { keywords: ['approve', 'approval', 'confirm', 'human check', 'authorize', 'sign off'], id: 'approve', name: 'Human Approval', typical: 25 },
+          verify: { keywords: ['verify', 'verification', 'attest', 'identity', 'capability', 'trust badge'], id: 'verify', name: 'Agent Verification', typical: 50 },
+        };
+
+        const queryLower = query.toLowerCase();
+        const matches: Array<{ id: string; name: string; confidence: number; typical: number }> = [];
+
+        for (const [, config] of Object.entries(serviceKeywords)) {
+          const matched = config.keywords.filter(kw => queryLower.includes(kw));
+          if (matched.length > 0) {
+            matches.push({
+              id: config.id,
+              name: config.name,
+              confidence: Math.min(0.95, matched.length * 0.2 + 0.1),
+              typical: config.typical,
+            });
+          }
+        }
+
+        matches.sort((a, b) => b.confidence - a.confidence);
+
+        if (matches.length === 0) {
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify({
+              message: 'No direct match. Try list_services to browse all options, or use create_deal with a description.',
+            }, null, 2) }],
+          };
+        }
+
+        const best = matches[0];
+        return {
+          content: [{ type: 'text' as const, text: JSON.stringify({
+            best_match: { service_id: best.id, service_name: best.name, confidence: `${(best.confidence * 100).toFixed(0)}%`, typical_price: `$${best.typical} USDC` },
+            auto_accept_likely: budget_usdc ? budget_usdc >= best.typical : undefined,
+            alternatives: matches.slice(1, 3).map(m => ({ service_id: m.id, name: m.name, typical_price: `$${m.typical} USDC` })),
+            next_step: `Use create_deal with service="${best.id}" and terms describing your needs.`,
+          }, null, 2) }],
+        };
+      }
+    );
   },
   {},
   {

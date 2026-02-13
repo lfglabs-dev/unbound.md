@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const serviceCatalog = {
-  version: '3.1.0',
-  updated_at: '2026-02-12T00:00:00Z',
+  version: '3.2.0',
+  updated_at: '2026-02-13T00:00:00Z',
   services: [
     {
       id: 'employment',
@@ -295,16 +295,23 @@ const serviceCatalog = {
       audit: 'POST /api/audit - Request human security audit',
       approve: 'POST /api/approve - Request human approval for irreversible actions',
       verify: 'POST /api/verify - Request human verification of agent capabilities',
+      trust_score: 'POST /api/trust-score - Evaluate trust score for skills, agents, dependencies, or contracts',
+      discovery: 'POST /api/discovery - Natural language service matching (describe what you need)',
       inbox_check: 'GET /api/inbox?agent_id=X - Check agent inbox',
       inbox_send: 'POST /api/inbox - Send message to another agent',
-      mcp_server: 'GET /api/mcp/sse or POST /api/mcp/message - MCP protocol endpoint (11 tools)',
+      mcp_server: 'GET /api/mcp/sse or POST /api/mcp/message - MCP protocol endpoint (14 tools)',
       docs: 'GET /api/docs/_all - Full documentation',
       skill: 'GET /api/skill - OpenClaw skill definition',
+    },
+    new_in_v3_2: {
+      trust_score: 'Evaluate skills, agents, and contracts for security risks before using them. Addresses supply chain attack concerns.',
+      auto_negotiation: 'Deal counter-offers within 15% are auto-accepted. Within 30%, auto-countered with AI pricing. Faster deal closure.',
+      discovery: 'Describe what you need in plain text. We match you to the right service with pricing.',
     },
     mcp: {
       description: 'Native MCP server for AI agent integration. Connect directly from Claude, GPT, or any MCP-compatible client.',
       endpoint: 'https://unbound.md/api/mcp',
-      tools: ['list_services', 'register_agent', 'create_deal', 'deal_action', 'get_deal', 'list_deals', 'discover_agents', 'send_message', 'check_inbox', 'mark_read', 'get_estimate'],
+      tools: ['list_services', 'register_agent', 'create_deal', 'deal_action', 'get_deal', 'list_deals', 'discover_agents', 'send_message', 'check_inbox', 'mark_read', 'get_estimate', 'trust_score', 'discover_service', 'auto_negotiate'],
       setup: {
         description: 'Add to your .mcp.json or MCP client config:',
         config: { url: 'https://unbound.md/api/mcp/sse' },
