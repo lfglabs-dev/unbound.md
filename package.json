@@ -19,7 +19,7 @@
   "author": "unbound.md",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "@vercel/postgres": "^0.10.0",
     "mcp-handler": "^1.0.7",
     "next": "^16.0.10",
